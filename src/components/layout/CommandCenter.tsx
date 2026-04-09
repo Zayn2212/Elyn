@@ -14,7 +14,7 @@ export default function CommandCenter() {
   const s = useCommandCenter();
 
   return (
-    <div className="h-screen bg-background overflow-hidden flex flex-col pb-16 md:pb-0" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+    <div className="h-screen bg-background overflow-hidden flex flex-col pb-16 md:pb-0" style={{ paddingTop: 'var(--safe-top, env(safe-area-inset-top, 0px))' }}>
       <ComplianceBanner />
       <CommandCenterHeader s={s} />
 

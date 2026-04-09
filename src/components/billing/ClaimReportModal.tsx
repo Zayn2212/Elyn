@@ -457,15 +457,17 @@ export default function ClaimReportModal({
             Claim Report
           </h2>
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handlePrint}
-              className="hidden md:flex rounded-lg px-3"
-            >
-              <Printer className="w-4 h-4 mr-1.5" />
-              Print
-            </Button>
+            {!Capacitor.isNativePlatform() && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePrint}
+                className="rounded-lg px-3"
+              >
+                <Printer className="w-4 h-4 mr-1.5" />
+                <span className="hidden sm:inline">Print</span>
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"

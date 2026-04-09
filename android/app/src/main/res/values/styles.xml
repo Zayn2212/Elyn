@@ -13,6 +13,10 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:background">@null</item>
+        <!-- Match status bar to dark navy app background -->
+        <item name="android:statusBarColor">#0f172a</item>
+        <!-- Use light (white) icons on the dark status bar -->
+        <item name="android:windowLightStatusBar">false</item>
     </style>
 
 

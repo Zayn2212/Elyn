@@ -133,13 +133,55 @@ const DeepLinkHandler = () => {
   return null;
 };
 
-// Configure iOS status bar — Dark style = light text on dark background
-if (Capacitor.isNativePlatform()) {
-  StatusBar.setOverlaysWebView({ overlay: true }).catch(() => {});
-  StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
-}
+/**
+ * SafeAreaSetup — runs once on mount on native platforms.
+ * On iOS: enables overlay mode so the WebView extends behind the notch,
+ *   then reads env(safe-area-inset-top) which WebKit reports correctly.
+ * On Android: enables overlay mode (Capacitor 6 forces edge-to-edge anyway),
+ *   then reads the REAL status bar height in px via StatusBar.getInfo() and
+ *   injects it as --safe-top on :root so CSS can use it reliably.
+ *
+ * All pages use `padding-top: var(--safe-top, env(safe-area-inset-top, 0px))`.
+ */
+const SafeAreaSetup = () => {
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
 
+    const setup = async () => {
+      const platform = Capacitor.getPlatform();
 
+      // Both platforms: overlay so the WebView fills edge-to-edge
+      await StatusBar.setOverlaysWebView({ overlay: true }).catch(() => {});
+      await StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
+
+      if (platform === 'android') {
+        // Android WebView doesn't reliably expose env(safe-area-inset-top).
+        // Read the real pixel height from the native side and inject it.
+        try {
+          const info = await StatusBar.getInfo();
+          // info.height is in pixels; convert to logical px for CSS
+          const heightPx = (info as any).height ?? 24;
+          document.documentElement.style.setProperty('--safe-top', `${heightPx}px`);
+        } catch {
+          // Fallback: typical Android status bar is 24dp
+          document.documentElement.style.setProperty('--safe-top', '24px');
+        }
+      } else {
+        // iOS: env(safe-area-inset-top) works perfectly via WebKit
+        document.documentElement.style.setProperty(
+          '--safe-top',
+          'env(safe-area-inset-top, 44px)'
+        );
+      }
+    };
+
+    setup();
+  }, []);
+
+  return null;
+};
+
+// Visual cover for the iOS notch area (drawn on top, matches background)
 const NotchCover = () => {
   if (!Capacitor.isNativePlatform()) return null;
   return <div className="ios-notch-cover" />;
@@ -149,6 +191,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
       <TooltipProvider>
+        <SafeAreaSetup />
         <NotchCover />
         <Toaster />
         <Sonner />
