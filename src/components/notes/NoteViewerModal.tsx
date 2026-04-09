@@ -796,15 +796,17 @@ export default function NoteViewerModal({
                 <Download className="w-3.5 h-3.5 mr-1.5" />
                 JSON
               </Button>
-              <Button
-                onClick={handlePrint}
-                variant="outline"
-                size="sm"
-                className="rounded-lg"
-              >
-                <Printer className="w-3.5 h-3.5 mr-1.5" />
-                Print
-              </Button>
+              {!Capacitor.isNativePlatform() && (
+                <Button
+                  onClick={handlePrint}
+                  variant="outline"
+                  size="sm"
+                  className="rounded-lg"
+                >
+                  <Printer className="w-3.5 h-3.5 mr-1.5" />
+                  Print
+                </Button>
+              )}
             </div>
           </motion.div>
         </div>
