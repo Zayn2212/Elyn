@@ -392,7 +392,7 @@ const PracticeManager = () => {
               {patientsBySpecialty.map((specialty) => (
                 <Card
                   key={specialty.id}
-                  className="bg-card border-border hover:border-primary/50 transition-colors cursor-pointer"
+                  className="bg-card border-border"
                 >
                   <CardHeader className="pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
                     <div className="flex items-center justify-between">
@@ -431,6 +431,10 @@ const PracticeManager = () => {
                           variant="ghost"
                           size="sm"
                           className="w-full text-primary text-xs"
+                          onClick={() => {
+                            setSelectedSpecialty(specialty.id);
+                            setActiveTab("census");
+                          }}
                         >
                           View all {specialty.patients.length}
                           <ChevronRight className="h-3 w-3 ml-1" />
@@ -662,7 +666,7 @@ const PatientCard = ({
       exit={{ opacity: 0, x: 20 }}
       transition={{ delay: index * 0.05 }}
     >
-      <Card className="bg-card border-border hover:border-primary/50 transition-all cursor-pointer group">
+      <Card className="bg-card border-border">
         <CardContent className="p-3 sm:p-4">
           <div className="flex items-center gap-2 sm:gap-4">
             {/* Acuity indicator */}
@@ -718,14 +722,6 @@ const PatientCard = ({
               </div>
             </div>
 
-            {/* Actions - always visible on mobile */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="sm:opacity-0 sm:group-hover:opacity-100 transition-opacity h-8 w-8 flex-shrink-0"
-            >
-              <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
-            </Button>
           </div>
         </CardContent>
       </Card>
