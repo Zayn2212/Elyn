@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Capacitor } from "@capacitor/core";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -231,7 +232,147 @@ export default function NoteViewerModal({
     toast("Full note copied");
   };
 
-  const handlePrint = () => window.print();
+  const handlePrint = () => {
+    const currentNote = isEditing ? buildFullNote() : note;
+    const currentSections = parseNoteSections(currentNote.generatedNote);
+
+    const sectionHTML = currentSections
+      .map((s) => {
+        const upper = s.title.toUpperCase();
+        const colorMap: Record<string, string> = {
+          SUBJECTIVE: "#dbeafe",
+          "HISTORY OF PRESENT ILLNESS": "#dbeafe",
+          HPI: "#dbeafe",
+          OBJECTIVE: "#dcfce7",
+          "PHYSICAL EXAMINATION": "#dcfce7",
+          EXAM: "#dcfce7",
+          ASSESSMENT: "#fef3c7",
+          PLAN: "#f3e8ff",
+          "CHIEF COMPLAINT": "#ffe4e6",
+          MEDICATIONS: "#ccfbf1",
+          ALLERGIES: "#fee2e2",
+          "REVIEW OF SYSTEMS": "#e0e7ff",
+          ROS: "#e0e7ff",
+          FINDINGS: "#dcfce7",
+          IMPRESSION: "#fef3c7",
+          TECHNIQUE: "#f1f5f9",
+          INDICATION: "#ffe4e6",
+        };
+        const bg = colorMap[upper] || "#f8fafc";
+        // Convert markdown-like content to HTML
+        const contentHTML = s.content
+          .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+          .replace(/\*(.+?)\*/g, "<em>$1</em>")
+          .replace(/^- (.+)/gm, "<li>$1</li>")
+          .replace(/(<li>.*<\/li>\n?)+/gs, "<ul>$&</ul>")
+          .replace(/\n\n/g, "</p><p>")
+          .replace(/\n/g, "<br/>");
+        return `
+          <div style="background:${bg};border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin-bottom:16px;page-break-inside:avoid">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#64748b;margin-bottom:8px">${s.title}</div>
+            <div style="font-size:13px;line-height:1.7;color:#1e293b"><p>${contentHTML}</p></div>
+          </div>`;
+      })
+      .join("");
+
+    const billingHTML = billing && (billing.icd10.length > 0 || billing.cpt.length > 0)
+      ? `<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin-bottom:16px;page-break-inside:avoid">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#64748b;margin-bottom:12px">Billing Summary</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div>
+              <div style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;margin-bottom:6px">ICD-10</div>
+              ${billing.icd10.map((c) => `<div style="font-size:12px;margin-bottom:4px"><span style="font-family:monospace;font-weight:600">${c.code}</span> <span style="color:#64748b">${c.description}</span></div>`).join("")}
+            </div>
+            <div>
+              <div style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;margin-bottom:6px">CPT</div>
+              ${billing.cpt.map((c) => `<div style="font-size:12px;margin-bottom:4px"><span style="font-family:monospace;font-weight:600">${c.code}</span> <span style="color:#64748b">${c.description}</span></div>`).join("")}
+            </div>
+          </div>
+          <div style="border-top:1px solid #e2e8f0;margin-top:12px;padding-top:12px;font-size:12px;color:#64748b">
+            E/M: <strong style="color:#1e293b">${billing.emLevel}</strong>
+            &nbsp;&nbsp;MDM: <strong style="color:#1e293b">${billing.mdmComplexity}</strong>
+            &nbsp;&nbsp;RVU: <strong style="color:#1e293b">${billing.rvu.toFixed(2)}</strong>
+          </div>
+        </div>`
+      : "";
+
+    const statusLabel = STATUS_CONFIG[status]?.label ?? status;
+    const reviewedBanner = reviewedAt
+      ? `<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#166534">
+          ✓ Physician Reviewed · ${new Date(reviewedAt).toLocaleString()}
+        </div>`
+      : `<div style="background:#fffbeb;border:1px dashed #fcd34d;border-radius:6px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#92400e">
+          ⚡ AI-Generated Draft · Requires Physician Review
+        </div>`;
+
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>${currentNote.noteType} — ${currentNote.patientName || "Patient"}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #1e293b; background: #fff; padding: 40px; max-width: 800px; margin: 0 auto; }
+    @media print {
+      body { padding: 24px; }
+      @page { margin: 1.5cm; }
+    }
+    ul { padding-left: 20px; margin: 4px 0; }
+    li { margin-bottom: 3px; }
+    p { margin-bottom: 6px; }
+    p:last-child { margin-bottom: 0; }
+  </style>
+</head>
+<body>
+  <div style="border-bottom:2px solid #1e293b;padding-bottom:16px;margin-bottom:24px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div>
+        <div style="font-size:20px;font-weight:700">${currentNote.noteType}</div>
+        <div style="font-size:14px;color:#64748b;margin-top:4px">${currentNote.patientName || "Patient"}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:12px;color:#64748b">${currentNote.dateGenerated}</div>
+        <div style="font-size:11px;color:#64748b;margin-top:2px">Status: ${statusLabel}</div>
+      </div>
+    </div>
+  </div>
+  ${reviewedBanner}
+  ${sectionHTML}
+  ${billingHTML}
+  <div style="border-top:1px solid #e2e8f0;margin-top:24px;padding-top:12px;font-size:10px;color:#94a3b8;display:flex;gap:16px">
+    <span>HIPAA Compliant</span>
+    <span>·</span>
+    <span>PHI de-identified during AI processing</span>
+    <span>·</span>
+    <span>AES-256 encrypted</span>
+    <span>·</span>
+    <span>Audit logged</span>
+    <span>·</span>
+    <span>Generated by elyn™</span>
+  </div>
+</body>
+</html>`;
+
+    if (Capacitor.isNativePlatform()) {
+      const bridge = (window as any).AndroidPrint;
+      if (bridge) {
+        bridge.printHTML(html, `${currentNote.noteType} — ${currentNote.patientName || "Patient"}`);
+      }
+    } else {
+      const printWindow = window.open("", "_blank", "width=900,height=700");
+      if (!printWindow) {
+        toast("Pop-up blocked — please allow pop-ups and try again");
+        return;
+      }
+      printWindow.document.write(html);
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+      }, 300);
+    }
+  };
 
   const handleSectionEdit = (index: number, newContent: string) => {
     setEditedSections((prev) => ({ ...prev, [index]: newContent }));
@@ -659,7 +800,7 @@ export default function NoteViewerModal({
                 onClick={handlePrint}
                 variant="outline"
                 size="sm"
-                className="rounded-lg hidden md:flex"
+                className="rounded-lg"
               >
                 <Printer className="w-3.5 h-3.5 mr-1.5" />
                 Print
