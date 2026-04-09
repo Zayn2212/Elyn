@@ -1,0 +1,1 @@
+ALTER TABLE public.clinical_notes ADD COLUMN reviewed_at timestamptz DEFAULT NULL, ADD COLUMN reviewed_by uuid DEFAULT NULL;

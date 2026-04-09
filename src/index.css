@@ -1,0 +1,605 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ELYN™ Design System - Dark Navy & Blue Theme */
+
+@layer base {
+  :root {
+    /* Light Mode - Clean Professional */
+    --background: 210 20% 98%;
+    --foreground: 222 47% 11%;
+
+    /* Light Cards */
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    /* Primary - Blue */
+    --primary: 210 100% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary - Light Navy */
+    --secondary: 222 30% 90%;
+    --secondary-foreground: 222 47% 20%;
+
+    /* Muted surfaces - Light */
+    --muted: 210 20% 94%;
+    --muted-foreground: 215 20% 45%;
+
+    /* Accent - Blue */
+    --accent: 210 100% 55%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Destructive */
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 20% 88%;
+    --input: 220 20% 94%;
+    --ring: 210 100% 55%;
+
+    --radius: 0.75rem;
+
+    /* Sidebar - Light */
+    --sidebar-background: 210 20% 96%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 210 100% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 20% 92%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 220 20% 88%;
+    --sidebar-ring: 210 100% 55%;
+
+    /* ELYN Brand Colors - Light variant */
+    --elyn-deep: 222 47% 95%;
+    --elyn-navy: 222 47% 90%;
+    --elyn-teal: 210 80% 85%;
+    --elyn-teal-light: 210 70% 75%;
+    --elyn-gold: 210 100% 55%;
+    --elyn-gold-light: 210 90% 65%;
+
+    /* Semantic Colors */
+    --success: 152 69% 40%;
+    --warning: 38 92% 50%;
+    --info: 199 89% 48%;
+    
+    /* Acuity Colors */
+    --acuity-critical: 0 72% 51%;
+    --acuity-high: 38 92% 50%;
+    --acuity-moderate: 210 100% 55%;
+    --acuity-low: 152 69% 40%;
+    
+    /* Glass Effects - Light version */
+    --glass-bg: 0 0% 100% / 0.9;
+    --glass-border: 220 20% 88%;
+    --glass-highlight: 0 0% 100% / 0.6;
+    
+    /* Surface Colors - Light tones */
+    --surface: 210 20% 96%;
+    --surface-hover: 210 20% 94%;
+    --surface-active: 210 20% 90%;
+    
+    /* Accent Glows - Light version */
+    --glow-primary: 210 100% 55% / 0.15;
+    --glow-secondary: 222 47% 50% / 0.1;
+    --glow-success: 152 69% 45% / 0.1;
+    --glow-warning: 38 92% 50% / 0.15;
+  }
+
+  .dark {
+    /* Dark Navy Background */
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+
+    /* Navy Cards */
+    --card: 222 47% 14%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 47% 12%;
+    --popover-foreground: 210 40% 98%;
+
+    /* Primary - Blue */
+    --primary: 210 100% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary - Navy Blue */
+    --secondary: 222 47% 20%;
+    --secondary-foreground: 210 40% 98%;
+
+    /* Muted surfaces - Dark Navy */
+    --muted: 222 45% 16%;
+    --muted-foreground: 215 20% 55%;
+
+    /* Accent - Blue */
+    --accent: 210 100% 55%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Destructive */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 222 40% 20%;
+    --input: 222 45% 16%;
+    --ring: 210 100% 55%;
+
+    /* Sidebar - Dark Navy */
+    --sidebar-background: 222 47% 9%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 210 100% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 222 45% 16%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 222 40% 18%;
+    --sidebar-ring: 210 100% 55%;
+
+    /* ELYN Brand Colors - Navy & Blue */
+    --elyn-deep: 222 47% 8%;
+    --elyn-navy: 222 47% 14%;
+    --elyn-teal: 210 80% 35%;
+    --elyn-teal-light: 210 70% 45%;
+    --elyn-gold: 210 100% 55%;
+    --elyn-gold-light: 210 90% 65%;
+
+    /* Semantic Colors */
+    --success: 152 69% 45%;
+    --warning: 38 92% 50%;
+    --info: 199 89% 48%;
+    
+    /* Acuity Colors */
+    --acuity-critical: 0 72% 51%;
+    --acuity-high: 38 92% 50%;
+    --acuity-moderate: 210 100% 55%;
+    --acuity-low: 152 69% 45%;
+    
+    /* Glass Effects - Dark Navy version */
+    --glass-bg: 222 47% 13% / 0.95;
+    --glass-border: 222 40% 22%;
+    --glass-highlight: 222 47% 18% / 0.6;
+    
+    /* Surface Colors - Dark Navy tones */
+    --surface: 222 47% 15%;
+    --surface-hover: 222 45% 18%;
+    --surface-active: 222 42% 22%;
+    
+    /* Accent Glows - Blue & Navy */
+    --glow-primary: 210 100% 55% / 0.25;
+    --glow-secondary: 222 47% 20% / 0.2;
+    --glow-success: 152 69% 45% / 0.15;
+    --glow-warning: 38 92% 50% / 0.2;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+
+  h1, h2, h3, h4, h5, h6, .font-heading {
+    font-family: 'Outfit', system-ui, sans-serif;
+    font-weight: 600;
+  }
+
+  h1 { font-size: 2.5rem; }
+  h2 { font-size: 1.875rem; }
+  h3 { font-size: 1.5rem; }
+  h4 { font-size: 1.25rem; }
+
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+
+  .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+@layer components {
+  /* Theme-aware gradient background */
+  .virtualis-bg {
+    background: linear-gradient(
+      180deg,
+      hsl(var(--background)) 0%,
+      hsl(var(--background)) 50%,
+      hsl(var(--background)) 100%
+    );
+  }
+
+  /* Glass card - dark glassmorphism */
+  .glass-card {
+    @apply rounded-2xl;
+    background: hsl(var(--glass-bg));
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid hsl(var(--glass-border));
+    box-shadow: 
+      0 1px 3px hsl(0 0% 0% / 0.2),
+      0 4px 16px hsl(0 0% 0% / 0.15);
+  }
+
+  /* Glass card with primary accent */
+  .glass-card-primary {
+    @apply glass-card;
+    border: 1px solid hsl(var(--primary) / 0.25);
+    box-shadow: 
+      0 1px 3px hsl(222 47% 11% / 0.04),
+      0 4px 16px hsl(var(--glow-primary));
+  }
+
+  /* Glass card with cyan accent (legacy support) */
+  .glass-card-gold {
+    @apply glass-card-primary;
+  }
+
+  /* Glass card with blue accent */
+  .glass-card-blue {
+    @apply glass-card;
+    border: 1px solid hsl(var(--secondary) / 0.25);
+    box-shadow: 
+      0 1px 3px hsl(222 47% 11% / 0.04),
+      0 4px 16px hsl(var(--glow-secondary));
+  }
+
+  /* Minimal glass surface */
+  .glass-surface {
+    background: hsl(var(--surface));
+    border: 1px solid hsl(var(--glass-border));
+  }
+
+  /* Subtle glow effects */
+  .glow-primary {
+    box-shadow: 0 0 20px hsl(var(--glow-primary));
+  }
+
+  .glow-secondary {
+    box-shadow: 0 0 20px hsl(var(--glow-secondary));
+  }
+  
+  .glow-success {
+    box-shadow: 0 0 20px hsl(var(--glow-success));
+  }
+
+  /* Gradient text - theme-aware */
+  .gradient-text {
+    background: linear-gradient(135deg, hsl(var(--foreground)) 0%, hsl(var(--primary)) 50%, hsl(var(--accent)) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Navy gradient text */
+  .gradient-text-blue {
+    background: linear-gradient(135deg, hsl(210 80% 45%) 0%, hsl(210 90% 60%) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Gradient background - Navy to Blue */
+  .gradient-bg {
+    background: linear-gradient(135deg, hsl(222 47% 14%) 0%, hsl(210 100% 55%) 100%);
+  }
+
+  /* Modern input styling */
+  .input-minimal {
+    @apply rounded-xl transition-all duration-200;
+    background: hsl(var(--surface));
+    border: 1px solid hsl(var(--border));
+  }
+
+  .input-minimal:focus {
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 0 3px hsl(var(--glow-primary));
+    outline: none;
+  }
+
+  /* Button hover effect */
+  .btn-minimal {
+    @apply transition-all duration-200;
+  }
+
+  .btn-minimal:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px hsl(var(--glow-primary));
+  }
+
+  /* Badge styling */
+  .badge-minimal {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium;
+    background: hsl(var(--surface));
+    border: 1px solid hsl(var(--border));
+  }
+  
+  /* Acuity badges */
+  .badge-critical {
+    @apply badge-minimal;
+    background: hsl(var(--acuity-critical) / 0.1);
+    border-color: hsl(var(--acuity-critical) / 0.3);
+    color: hsl(var(--acuity-critical));
+  }
+  
+  .badge-high {
+    @apply badge-minimal;
+    background: hsl(var(--acuity-high) / 0.1);
+    border-color: hsl(var(--acuity-high) / 0.3);
+    color: hsl(var(--acuity-high));
+  }
+  
+  .badge-moderate {
+    @apply badge-minimal;
+    background: hsl(var(--acuity-moderate) / 0.1);
+    border-color: hsl(var(--acuity-moderate) / 0.3);
+    color: hsl(var(--acuity-moderate));
+  }
+  
+  .badge-low {
+    @apply badge-minimal;
+    background: hsl(var(--acuity-low) / 0.1);
+    border-color: hsl(var(--acuity-low) / 0.3);
+    color: hsl(var(--acuity-low));
+  }
+
+  /* Floating animation */
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  /* Pulse animation for recording */
+  @keyframes pulse-recording {
+    0%, 100% {
+      box-shadow: 0 0 0 0 hsl(0 72% 51% / 0.6);
+    }
+    50% {
+      box-shadow: 0 0 0 10px hsl(0 72% 51% / 0);
+    }
+  }
+
+  .recording-pulse {
+    animation: pulse-recording 1.5s infinite;
+  }
+
+  /* Waveform animation */
+  @keyframes waveform {
+    0%, 100% { height: 8px; }
+    50% { height: 100%; }
+  }
+
+  .waveform-bar {
+    animation: waveform 0.8s ease-in-out infinite;
+  }
+
+  /* Shimmer effect */
+  @keyframes shimmer {
+    0% { background-position: 0% center; }
+    100% { background-position: 200% center; }
+  }
+
+  .gradient-text-shimmer {
+    background: linear-gradient(
+      90deg,
+      hsl(210 100% 55%) 0%,
+      hsl(210 90% 65%) 25%,
+      hsl(210 40% 98%) 50%,
+      hsl(210 90% 65%) 75%,
+      hsl(210 100% 55%) 100%
+    );
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 3s linear infinite;
+  }
+  
+  /* Fixed notch cover — always sits on top of the iOS status bar area */
+  .ios-notch-cover {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: env(safe-area-inset-top, 0px);
+    background: hsl(var(--background));
+    z-index: 9999;
+    pointer-events: none;
+  }
+
+  /* Bottom navigation - theme-aware */
+  .bottom-nav {
+    background: hsl(var(--card) / 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid hsl(var(--glass-border));
+  }
+  
+  /* Patient card hover effect */
+  .patient-card {
+    @apply glass-card transition-all duration-200;
+  }
+  
+  .patient-card:hover {
+    transform: translateY(-2px);
+    border-color: hsl(var(--primary) / 0.4);
+    box-shadow: 
+      0 4px 20px hsl(var(--glow-primary)),
+      0 1px 3px hsl(222 47% 11% / 0.06);
+  }
+  
+  .patient-card:active {
+    transform: translateY(0);
+  }
+  
+  /* Slide up animation for bottom sheets */
+  @keyframes slide-up {
+    from { transform: translateY(100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  
+  @keyframes slide-down {
+    from { transform: translateY(0); opacity: 1; }
+    to { transform: translateY(100%); opacity: 0; }
+  }
+  
+  .animate-slide-up {
+    animation: slide-up 0.3s ease-out;
+  }
+  
+  .animate-slide-down {
+    animation: slide-down 0.3s ease-out;
+  }
+  
+  /* Tab indicator */
+  .tab-indicator {
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%);
+    box-shadow: 0 2px 8px hsl(var(--glow-primary));
+  }
+  
+  /* Ambient recording indicator */
+  @keyframes ambient-pulse {
+    0%, 100% { 
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% { 
+      opacity: 0.7;
+      transform: scale(1.05);
+    }
+  }
+  
+  .ambient-recording {
+    animation: ambient-pulse 2s ease-in-out infinite;
+  }
+}
+
+@layer utilities {
+  /* Custom scrollbar - dark */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(222 40% 25%) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: hsl(222 40% 25%);
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: hsl(222 40% 30%);
+  }
+
+  /* Text shadow */
+  .text-shadow-gold {
+    text-shadow: 0 0 16px hsl(45 93% 47% / 0.4);
+  }
+
+  .text-shadow-blue {
+    text-shadow: 0 0 16px hsl(199 70% 45% / 0.4);
+  }
+
+  /* Hide scrollbar for horizontal scroll containers */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Safe area */
+  .safe-area-inset {
+    padding-top: env(safe-area-inset-top);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Print Styles */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  .print\:hidden {
+    display: none !important;
+  }
+  
+  .print\:block {
+    display: block !important;
+  }
+  
+  .print\:static {
+    position: static !important;
+  }
+  
+  /* Hide screen-only elements when printing */
+  .min-h-screen > .relative.z-10:not(.print-report),
+  .glass-card,
+  .fixed,
+  nav,
+  header {
+    display: none !important;
+  }
+  
+  /* Show only the printable report */
+  .print-report {
+    display: block !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    background: white !important;
+    color: #1e293b !important;
+    font-size: 12pt !important;
+    line-height: 1.4 !important;
+  }
+  
+  .print-report * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  /* Page break controls */
+  .break-inside-avoid {
+    break-inside: avoid !important;
+  }
+  
+  @page {
+    size: letter;
+    margin: 0.75in;
+  }
+}

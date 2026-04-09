@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Elyn</string>
+    <string name="title_activity_main">Elyn</string>
+    <string name="package_name">com.elyn.aiassistant</string>
+    <string name="custom_url_scheme">com.elyn.aiassistant</string>
+</resources>

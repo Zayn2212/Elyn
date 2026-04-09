@@ -1,0 +1,48 @@
+project_id = "mjkqxizyuqxmfufylpbw"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+
+[functions.generate-note-with-billing]
+verify_jwt = true
+
+[functions.generate-handoff]
+verify_jwt = true
+
+[functions.correct-medical-terms]
+verify_jwt = true
+
+[functions.transcribe-audio]
+verify_jwt = true
+
+[functions.validate-billing-codes]
+verify_jwt = true
+
+[functions.assess-denial-risk]
+verify_jwt = true
+
+[functions.parse-face-sheet]
+verify_jwt = true
+
+[functions.elevenlabs-scribe-token]
+verify_jwt = false
+
+[functions.ai-billing-intelligence]
+verify_jwt = true
+
