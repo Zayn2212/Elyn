@@ -102,7 +102,8 @@ const AI = {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to start streaming note generation: ${response.status}`);
+      const errBody = await response.json().catch(() => null);
+      throw new Error(errBody?.error || `Failed to start streaming note generation: ${response.status}`);
     }
 
     return response;

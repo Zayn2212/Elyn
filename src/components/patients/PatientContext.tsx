@@ -123,21 +123,29 @@ interface PatientSummaryCardProps {
 
 export function PatientSummaryCard({ patientId, patientName, className }: PatientSummaryCardProps) {
   const [summary, setSummary] = useState<PatientSummaryData | null>(null);
+  const [noteCount, setNoteCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(false);
 
   const fetchSummary = async () => {
     if (!patientId) return;
     setIsLoading(true);
-    const { data } = await supabase
-      .from('patient_summaries')
-      .select('key_diagnoses, active_medications, last_notes_summary, note_count')
-      .eq('patient_id', patientId)
-      .maybeSingle();
+    const [{ data }, { count }] = await Promise.all([
+      supabase
+        .from('patient_summaries')
+        .select('key_diagnoses, active_medications, last_notes_summary, note_count')
+        .eq('patient_id', patientId)
+        .maybeSingle(),
+      supabase
+        .from('clinical_notes')
+        .select('id', { count: 'exact', head: true })
+        .eq('patient_id', patientId),
+    ]);
     setSummary(data as PatientSummaryData);
+    setNoteCount(count ?? 0);
     setIsLoading(false);
   };
 
-  useEffect(() => { patientId ? fetchSummary() : setSummary(null); }, [patientId]);
+  useEffect(() => { patientId ? fetchSummary() : (setSummary(null), setNoteCount(0)); }, [patientId]);
 
   if (!patientId) return null;
   if (isLoading) return <div className={cn('p-4 rounded-xl bg-card border', className)}><span className="text-sm text-muted-foreground">Loading...</span></div>;
@@ -149,7 +157,7 @@ export function PatientSummaryCard({ patientId, patientName, className }: Patien
           <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center"><User className="w-5 h-5 text-primary" /></div>
           <div>
             <h4 className="font-semibold">{patientName || 'Patient'}</h4>
-            <p className="text-xs text-muted-foreground">{summary?.note_count || 0} prior notes</p>
+            <p className="text-xs text-muted-foreground">{noteCount} prior notes</p>
           </div>
         </div>
         <button onClick={fetchSummary} className="p-1.5 rounded-lg hover:bg-muted"><RefreshCw className="w-4 h-4 text-muted-foreground" /></button>
