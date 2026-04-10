@@ -135,13 +135,9 @@ const DeepLinkHandler = () => {
 
 /**
  * SafeAreaSetup — runs once on mount on native platforms.
- * On iOS: enables overlay mode so the WebView extends behind the notch,
- *   then reads env(safe-area-inset-top) which WebKit reports correctly.
- * On Android: enables overlay mode (Capacitor 6 forces edge-to-edge anyway),
- *   then reads the REAL status bar height in px via StatusBar.getInfo() and
- *   injects it as --safe-top on :root so CSS can use it reliably.
- *
- * All pages use `padding-top: var(--safe-top, env(safe-area-inset-top, 0px))`.
+ * Probes env(safe-area-inset-top) via a hidden div so we get the exact
+ * pixel value from the WebView (works on Android with overlay:true +
+ * viewport-fit=cover). Falls back to 36px if env() still reports 0.
  */
 const SafeAreaSetup = () => {
   useEffect(() => {
@@ -155,17 +151,18 @@ const SafeAreaSetup = () => {
       await StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
 
       if (platform === 'android') {
-        // Android WebView doesn't reliably expose env(safe-area-inset-top).
-        // Read the real pixel height from the native side and inject it.
-        try {
-          const info = await StatusBar.getInfo();
-          // info.height is in pixels; convert to logical px for CSS
-          const heightPx = (info as any).height ?? 24;
-          document.documentElement.style.setProperty('--safe-top', `${heightPx}px`);
-        } catch {
-          // Fallback: typical Android status bar is 24dp
-          document.documentElement.style.setProperty('--safe-top', '24px');
-        }
+        // Probe env(safe-area-inset-top) via computed style — this works
+        // on Android WebView once overlay:true + viewport-fit=cover are active.
+        const probe = document.createElement('div');
+        probe.style.cssText =
+          'position:fixed;top:0;left:0;height:0;padding-top:env(safe-area-inset-top);pointer-events:none;visibility:hidden;';
+        document.body.appendChild(probe);
+        const insetPx = parseInt(getComputedStyle(probe).paddingTop, 10) || 0;
+        document.body.removeChild(probe);
+
+        // Use probed value; fall back to 36px if env() still returns 0
+        const safePx = insetPx > 0 ? insetPx : 36;
+        document.documentElement.style.setProperty('--safe-top', `${safePx}px`);
       } else {
         // iOS: env(safe-area-inset-top) works perfectly via WebKit
         document.documentElement.style.setProperty(

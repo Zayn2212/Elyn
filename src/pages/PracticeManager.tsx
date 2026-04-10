@@ -231,7 +231,9 @@ const PracticeManager = () => {
       {/* Fixed Header */}
       <div
         className="fixed top-0 left-0 right-0 z-50 bg-background/70 backdrop-blur-xl border-b border-border/50"
-        style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
+        style={{
+          paddingTop: "var(--safe-top, env(safe-area-inset-top, 24px))",
+        }}
       >
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -265,7 +267,10 @@ const PracticeManager = () => {
       </div>
       <div
         className="relative z-10 max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 pb-6"
-        style={{ paddingTop: "calc(6rem + env(safe-area-inset-top, 0px))" }}
+        style={{
+          paddingTop:
+            "calc(5rem + var(--safe-top, env(safe-area-inset-top, 0px)))",
+        }}
       >
         {/* Mobile-Responsive Stats Grid: 2 cols on mobile, 3 on tablet, 6 on desktop */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 lg:gap-4 mb-6">

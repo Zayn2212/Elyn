@@ -278,14 +278,16 @@ const ProfileSettings = () => {
     if (userAgent.includes("Edg/")) browser = "Edge";
     else if (userAgent.includes("Chrome/")) browser = "Chrome";
     else if (userAgent.includes("Firefox/")) browser = "Firefox";
-    else if (userAgent.includes("Safari/") && !userAgent.includes("Chrome/")) browser = "Safari";
+    else if (userAgent.includes("Safari/") && !userAgent.includes("Chrome/"))
+      browser = "Safari";
 
     let os = "";
     if (userAgent.includes("iPhone")) os = "iPhone";
     else if (userAgent.includes("iPad")) os = "iPad";
     else if (userAgent.includes("Android")) os = "Android";
     else if (userAgent.includes("Windows")) os = "Windows";
-    else if (userAgent.includes("Macintosh") || userAgent.includes("Mac OS")) os = "Mac";
+    else if (userAgent.includes("Macintosh") || userAgent.includes("Mac OS"))
+      os = "Mac";
     else if (userAgent.includes("Linux")) os = "Linux";
 
     return os ? `${browser} on ${os}` : browser;
@@ -298,7 +300,12 @@ const ProfileSettings = () => {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Fixed Header Wrapper */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-background/70 backdrop-blur-xl border-b border-border/50" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+      <div
+        className="fixed top-0 left-0 right-0 z-50 bg-background/70 backdrop-blur-xl border-b border-border/50"
+        style={{
+          paddingTop: "var(--safe-top, env(safe-area-inset-top, 40px))",
+        }}
+      >
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center gap-4">
           <Button
             variant="ghost"
@@ -319,7 +326,13 @@ const ProfileSettings = () => {
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4" style={{ paddingTop: 'calc(6rem + env(safe-area-inset-top, 0px))' }}>
+      <div
+        className="max-w-2xl mx-auto px-4"
+        style={{
+          paddingTop:
+            "calc(5.5rem + var(--safe-top, env(safe-area-inset-top, 0px)))",
+        }}
+      >
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
