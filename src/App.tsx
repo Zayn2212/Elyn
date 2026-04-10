@@ -135,36 +135,32 @@ const DeepLinkHandler = () => {
 
 /**
  * SafeAreaSetup — runs once on mount on native platforms.
- * Probes env(safe-area-inset-top) via a hidden div so we get the exact
- * pixel value from the WebView (works on Android with overlay:true +
- * viewport-fit=cover). Falls back to 36px if env() still reports 0.
+ * Sets --safe-top = env(safe-area-inset-top) as a CSS custom property on
+ * :root. CSS custom properties evaluate lazily at paint time, so the value
+ * is always accurate — no need to probe or poll.
  */
 const SafeAreaSetup = () => {
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
 
     const setup = async () => {
-      const platform = Capacitor.getPlatform();
-
-      // Both platforms: overlay so the WebView fills edge-to-edge
+      // Enable edge-to-edge so the WebView gets the full screen
       await StatusBar.setOverlaysWebView({ overlay: true }).catch(() => {});
       await StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
 
+      const platform = Capacitor.getPlatform();
+      
+      // Point --safe-top directly at env() with a hard minimum using max(). 
+      // The browser evaluates this at paint time so it always reflects the real inset.
       if (platform === 'android') {
-        // Probe env(safe-area-inset-top) via computed style — this works
-        // on Android WebView once overlay:true + viewport-fit=cover are active.
-        const probe = document.createElement('div');
-        probe.style.cssText =
-          'position:fixed;top:0;left:0;height:0;padding-top:env(safe-area-inset-top);pointer-events:none;visibility:hidden;';
-        document.body.appendChild(probe);
-        const insetPx = parseInt(getComputedStyle(probe).paddingTop, 10) || 0;
-        document.body.removeChild(probe);
-
-        // Use probed value; fall back to 36px if env() still returns 0
-        const safePx = insetPx > 0 ? insetPx : 36;
-        document.documentElement.style.setProperty('--safe-top', `${safePx}px`);
+        document.documentElement.style.setProperty(
+          '--safe-top',
+          // To adjust how far down the app starts on Android, change the "50px" below.
+          // Increase it (e.g., 60px) to push content further down,
+          // Decrease it (e.g., 40px) to move content higher up.
+          'max(env(safe-area-inset-top), 50px)'
+        );
       } else {
-        // iOS: env(safe-area-inset-top) works perfectly via WebKit
         document.documentElement.style.setProperty(
           '--safe-top',
           'env(safe-area-inset-top, 44px)'
