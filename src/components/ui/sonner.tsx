@@ -19,6 +19,9 @@ const Toaster = ({ ...props }: ToasterProps) => {
           cancelButton: "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
         },
       }}
+      style={{
+        marginTop: "var(--safe-top, env(safe-area-inset-top, 0px))",
+      }}
       {...props}
     />
   );
