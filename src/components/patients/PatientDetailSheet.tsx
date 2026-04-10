@@ -485,12 +485,9 @@ export default function PatientDetailSheet({
                   </div>
                 )}
 
-                <div className={cn(
-                  "flex-1 overflow-y-auto min-h-0 relative",
-                  !isEditingPatient && "mb-4"
-                )}>
+                <div className="flex-1 flex flex-col min-h-0 relative">
                   {isEditingPatient ? (
-                    <div className="px-4 pb-4">
+                    <div className="px-4 pb-4 flex-1 overflow-y-auto min-h-0">
                       {/* Edit Mode Fields */}
                       <div className="space-y-4 pt-4">
                         {/* Name */}
@@ -944,7 +941,7 @@ export default function PatientDetailSheet({
                       </div>
 
                       {/* Section Tabs */}
-                      <div className="flex gap-2 px-4 py-3 shrink-0 sticky top-0 z-10 bg-background/95 backdrop-blur-md border-y border-border shadow-sm">
+                      <div className="flex gap-2 px-4 py-3 shrink-0 bg-background/95 backdrop-blur-md border-y border-border shadow-sm">
                         <button
                           onClick={() => setActiveSection("notes")}
                           className={cn(
@@ -972,7 +969,7 @@ export default function PatientDetailSheet({
                       </div>
 
                       {/* Content */}
-                      <div className="flex-1 px-4 py-4 min-h-0">
+                      <div className="flex-1 overflow-y-auto min-h-0 px-4 py-4 mb-4">
                         {isLoading ? (
                           <NoteItemsSkeleton count={4} />
                         ) : activeSection === "notes" ? (

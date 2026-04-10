@@ -229,7 +229,10 @@ const PracticeManager = () => {
       <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent" />
 
       {/* Fixed Header */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-background/70 backdrop-blur-xl border-b border-border/50" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+      <div
+        className="fixed top-0 left-0 right-0 z-50 bg-background/70 backdrop-blur-xl border-b border-border/50"
+        style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
+      >
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <Button
@@ -242,7 +245,7 @@ const PracticeManager = () => {
             </Button>
             <div className="flex-1 min-w-0">
               <h1 className="text-xl font-bold text-foreground truncate">
-                Practice Manager
+                Patients Manager
               </h1>
               <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider opacity-70 hidden sm:block">
                 Multi-Specialty Patient Census & Billing
@@ -260,7 +263,10 @@ const PracticeManager = () => {
           </Button>
         </div>
       </div>
-      <div className="relative z-10 max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 pb-6" style={{ paddingTop: 'calc(6rem + env(safe-area-inset-top, 0px))' }}>
+      <div
+        className="relative z-10 max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 pb-6"
+        style={{ paddingTop: "calc(6rem + env(safe-area-inset-top, 0px))" }}
+      >
         {/* Mobile-Responsive Stats Grid: 2 cols on mobile, 3 on tablet, 6 on desktop */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 lg:gap-4 mb-6">
           <StatsCard
@@ -390,10 +396,7 @@ const PracticeManager = () => {
           <TabsContent value="specialty" className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {patientsBySpecialty.map((specialty) => (
-                <Card
-                  key={specialty.id}
-                  className="bg-card border-border"
-                >
+                <Card key={specialty.id} className="bg-card border-border">
                   <CardHeader className="pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 sm:gap-3">
@@ -721,7 +724,6 @@ const PatientCard = ({
                 )}
               </div>
             </div>
-
           </div>
         </CardContent>
       </Card>
