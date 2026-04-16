@@ -28,7 +28,7 @@
 	<string>Main</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
-		<string>armv7</string>
+		<string>arm64</string>
 	</array>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
@@ -51,5 +51,7 @@
 	<string>Elyn needs camera access to capture face sheets and clinical documents.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Elyn needs photo library access to import face sheets and clinical documents.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Elyn needs permission to save captured documents and clinical images to your photo library.</string>
 </dict>
 </plist>
