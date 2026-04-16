@@ -9,6 +9,10 @@ type State = ReturnType<typeof useElynState>;
 export function useNoteGeneration(s: State) {
   const generateNote = async () => {
     if (!s.editableTranscript.trim()) return;
+    if (s.editableTranscript.trim().split(/\s+/).length < 10) {
+      s.showToast('Transcript too short — please dictate more before generating', 4000);
+      return;
+    }
     if (!s.patient.name.trim()) {
       s.showToast('Please add a patient before generating', 3000);
       s.setShowPatientModal(true);

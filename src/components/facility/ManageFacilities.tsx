@@ -15,6 +15,7 @@ export default function ManageFacilities({ isOpen, onClose }: ManageFacilitiesPr
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     nickname: '',
@@ -74,9 +75,14 @@ export default function ManageFacilities({ isOpen, onClose }: ManageFacilitiesPr
     setIsAdding(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this facility? Patients will be unassigned from it.')) {
-      await deleteFacility(id);
+  const handleDelete = (id: string) => {
+    setDeleteConfirmId(id);
+  };
+
+  const confirmDelete = async () => {
+    if (deleteConfirmId) {
+      await deleteFacility(deleteConfirmId);
+      setDeleteConfirmId(null);
     }
   };
 
@@ -337,6 +343,56 @@ export default function ManageFacilities({ isOpen, onClose }: ManageFacilitiesPr
               </div>
             </motion.div>
           </div>
+          {/* Delete Confirmation Modal */}
+          <AnimatePresence>
+            {deleteConfirmId && (
+              <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  onClick={() => setDeleteConfirmId(null)}
+                  className="absolute inset-0 bg-black/40 rounded-2xl"
+                />
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.15 }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="relative z-10 w-full max-w-sm glass-card p-5 space-y-4"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center flex-shrink-0">
+                      <Trash2 className="w-5 h-5 text-destructive" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-foreground">Delete Facility</h3>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Are you sure you want to delete this facility? Patients will be unassigned from it.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setDeleteConfirmId(null)}
+                      className="flex-1 h-9 rounded-lg text-sm"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={confirmDelete}
+                      className="flex-1 h-9 rounded-lg text-sm bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>
         </>
       )}
     </AnimatePresence>

@@ -45,6 +45,9 @@
 
     --radius: 0.75rem;
 
+    /* Safe area top — overridden by SafeAreaSetup.tsx on native platforms */
+    --safe-top: env(safe-area-inset-top, 0px);
+
     /* Sidebar - Light */
     --sidebar-background: 210 20% 96%;
     --sidebar-foreground: 222 47% 11%;

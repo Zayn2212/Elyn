@@ -256,6 +256,10 @@ export function useCommandCenter() {
 
   const generateNote = useCallback(async () => {
     if (!editableTranscript.trim()) return;
+    if (editableTranscript.trim().split(/\s+/).length < 10) {
+      showToast('Transcript too short — please dictate more before generating');
+      return;
+    }
     if (documentMode === 'radiology' && !selectedPatient) { showToast('Please select a patient for radiology reports'); return; }
 
     setIsGenerating(true);
@@ -330,7 +334,8 @@ export function useCommandCenter() {
 
     } catch (e) {
       console.error('Error generating note stream:', e);
-      showToast('Error generating note');
+      const msg = e instanceof Error ? e.message : 'Error generating note';
+      showToast(msg);
       setIsGenerating(false);
     }
   }, [editableTranscript, documentMode, selectedPatient, radiologyModality, cardiologyStudyType, noteType, radiologyContext, notePreferences, showToast]);
