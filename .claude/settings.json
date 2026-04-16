@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(grep -E \"\\\\.\\(plist|swift|m|entitlements|json|ts\\)$\")"
+      "Bash(grep -E \"\\\\.\\(plist|swift|m|entitlements|json|ts\\)$\")",
+      "Read(//d/paper-to-pixel/app/**)"
     ],
     "additionalDirectories": [
       "d:\\paper-to-pixel\\app\\Elyn\\ios\\App\\App\\Assets.xcassets\\AppIcon.appiconset\\AppIcon.appiconset"

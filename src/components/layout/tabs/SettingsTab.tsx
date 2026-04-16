@@ -8,7 +8,10 @@ import {
   LayoutDashboard,
   Sun,
   Moon,
+  FileText,
+  Shield,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import type { CommandCenterState } from "@/hooks/useCommandCenter";
 import { SettingsSkeleton } from "./TabSkeletons";
 
@@ -77,7 +80,24 @@ export default function SettingsTab({ s }: { s: CommandCenterState }) {
         </div>
       </div>
 
-      <div className="px-4 py-4 pb-20 md:pb-6 border-t border-border bg-background">
+      <div className="px-4 py-4 pb-20 md:pb-6 border-t border-border bg-background space-y-3">
+        <div className="flex items-center justify-center gap-4 py-1">
+          <Link
+            to="/terms"
+            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <FileText className="w-3.5 h-3.5" />
+            Terms of Service
+          </Link>
+          <span className="text-border text-xs">·</span>
+          <Link
+            to="/privacy"
+            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Shield className="w-3.5 h-3.5" />
+            Privacy Policy
+          </Link>
+        </div>
         <Button
           onClick={s.signOut}
           variant="outline"
