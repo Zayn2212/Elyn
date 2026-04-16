@@ -26,6 +26,8 @@ import PracticeManager from "./pages/PracticeManager";
 import AdminDashboardPage from "./pages/AdminDashboard";
 import ProfileSettings from "./pages/ProfileSettings";
 import ResetPassword from "./pages/ResetPassword";
+import TermsOfService from "./pages/TermsOfService";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
@@ -103,6 +105,8 @@ const AppRoutes = () => {
         }
       />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/terms" element={<TermsOfService />} />
+      <Route path="/privacy" element={<PrivacyPolicy />} />
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
       <Route path="*" element={<NotFound />} />
     </Routes>
