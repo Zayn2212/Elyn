@@ -72,9 +72,7 @@ const Auth = () => {
   const [fullName, setFullName] = useState("");
   const [specialty, setSpecialty] = useState("");
   const [loading, setLoading] = useState(false);
-  const [agreedToTerms, setAgreedToTerms] = useState(
-    () => localStorage.getItem("elyn_terms_accepted") === "true"
-  );
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [showPasswordRequirements, setShowPasswordRequirements] =
     useState(false);
   const [mfaChallenge, setMfaChallenge] = useState<{ factorId: string } | null>(
@@ -154,15 +152,7 @@ const Auth = () => {
       });
       return;
     }
-    if (!agreedToTerms) {
-      toast({
-        title: "Agreement Required",
-        description: "Please accept the Terms of Service and Privacy Policy.",
-        variant: "destructive",
-      });
-      return;
-    }
-    setLoading(true);
+setLoading(true);
     try {
       if (isLogin) {
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -532,55 +522,52 @@ const Auth = () => {
                       </motion.div>
                     )}
                   </div>
-                  <div className="pt-1">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const next = !agreedToTerms;
-                        setAgreedToTerms(next);
-                        if (next) localStorage.setItem("elyn_terms_accepted", "true");
-                        else localStorage.removeItem("elyn_terms_accepted");
-                      }}
-                      className="flex items-start gap-2.5 w-full text-left group"
-                    >
-                      <span className="mt-0.5 shrink-0 text-primary">
-                        {agreedToTerms ? (
-                          <CheckSquare className="h-4 w-4" />
-                        ) : (
-                          <Square className="h-4 w-4 text-foreground/40 group-hover:text-primary/60" />
-                        )}
-                      </span>
-                      <span className="text-xs text-foreground/60 leading-relaxed">
-                        I agree to Elyn's{" "}
-                        <Link
-                          to="/terms"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                          className="text-primary hover:underline font-medium"
-                        >
-                          Terms of Service
-                        </Link>{" "}
-                        and{" "}
-                        <Link
-                          to="/privacy"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                          className="text-primary hover:underline font-medium"
-                        >
-                          Privacy Policy
-                        </Link>
-                      </span>
-                    </button>
-                  </div>
+                  {!isLogin && (
+                    <div className="pt-1">
+                      <button
+                        type="button"
+                        onClick={() => setAgreedToTerms((prev) => !prev)}
+                        className="flex items-start gap-2.5 w-full text-left group"
+                      >
+                        <span className="mt-0.5 shrink-0 text-primary">
+                          {agreedToTerms ? (
+                            <CheckSquare className="h-4 w-4" />
+                          ) : (
+                            <Square className="h-4 w-4 text-foreground/40 group-hover:text-primary/60" />
+                          )}
+                        </span>
+                        <span className="text-xs text-foreground/60 leading-relaxed">
+                          I agree to Elyn's{" "}
+                          <Link
+                            to="/terms"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="text-primary hover:underline font-medium"
+                          >
+                            Terms of Service
+                          </Link>{" "}
+                          and{" "}
+                          <Link
+                            to="/privacy"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="text-primary hover:underline font-medium"
+                          >
+                            Privacy Policy
+                          </Link>
+                        </span>
+                      </button>
+                    </div>
+                  )}
                   <Button
                     type="submit"
                     className="w-full h-12 bg-gradient-to-r from-blue-500 to-sky-500 hover:from-blue-600 hover:to-sky-600 text-white font-semibold shadow-lg shadow-blue-500/25"
                     disabled={
                       loading ||
                       (!isLogin && !isPasswordValid && password.length > 0) ||
-                      !agreedToTerms
+                      (!isLogin && !agreedToTerms)
                     }
                   >
                     {loading ? (
@@ -600,7 +587,7 @@ const Auth = () => {
                       setIsLogin(!isLogin);
                       setPassword("");
                       setSpecialty("");
-                      setAgreedToTerms(localStorage.getItem("elyn_terms_accepted") === "true");
+                      setAgreedToTerms(false);
                       setShowPasswordRequirements(false);
                     }}
                     className="text-sm text-foreground/50 hover:text-foreground/80 transition-colors"

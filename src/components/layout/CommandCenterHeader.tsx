@@ -86,7 +86,7 @@ export default function CommandCenterHeader({ s }: { s: CommandCenterState }) {
             <Button
               onClick={s.handleRecordPress}
               size="sm"
-              className="min-w-0 bg-gradient-to-r from-blue-500 to-blue-400 text-primary-foreground font-semibold rounded-xl px-3 sm:px-5"
+              className="min-w-0 bg-gradient-to-r from-primary to-blue-600 dark:to-secondary hover:opacity-90 text-primary-foreground font-semibold rounded-xl px-3 sm:px-5 h-9 transition-opacity"
             >
               <Plus className="w-4 h-4 sm:mr-2 shrink-0" />
               <span className="hidden sm:inline whitespace-nowrap">
