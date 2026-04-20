@@ -56,6 +56,7 @@ import {
 } from "@/lib/exportNotes";
 import { MarkdownDisplay } from "@/components/ui/markdown-display";
 import { NoteItemsSkeleton } from "../layout/tabs/TabSkeletons";
+import { PhiExportDialog } from "@/components/ui/phi-export-dialog";
 
 interface ClinicalNote {
   id: string;
@@ -120,6 +121,7 @@ export default function PatientDetailSheet({
   const [isSaving, setIsSaving] = useState(false);
   const [deleteNoteId, setDeleteNoteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [pendingExportNote, setPendingExportNote] = useState<ClinicalNote | null>(null);
 
   // Patient edit state
   const [isEditingPatient, setIsEditingPatient] = useState(false);
@@ -218,14 +220,8 @@ export default function PatientDetailSheet({
     onToast("Copied to clipboard");
   };
 
-  const handleExportTxt = async (note: ClinicalNote) => {
-    await exportNoteToText(getExportData(note));
-    onToast("Exported as TXT");
-  };
-
-  const handleExportJson = async (note: ClinicalNote) => {
-    await exportNoteToJSON(getExportData(note));
-    onToast("Exported as JSON");
+  const handleExportTxt = (note: ClinicalNote) => {
+    setPendingExportNote(note);
   };
 
   const handleStartEdit = (note: ClinicalNote) => {
@@ -1283,6 +1279,18 @@ export default function PatientDetailSheet({
               )}
             </motion.div>
           </div>
+
+          <PhiExportDialog
+            open={!!pendingExportNote}
+            description="This file contains patient name, MRN, and clinical note content. Only save to a HIPAA-compliant, secured device."
+            onCancel={() => setPendingExportNote(null)}
+            onConfirm={async () => {
+              if (!pendingExportNote) return;
+              await exportNoteToText(getExportData(pendingExportNote));
+              onToast("Exported as TXT");
+              setPendingExportNote(null);
+            }}
+          />
 
           {/* Delete Confirmation Dialog */}
           <AlertDialog

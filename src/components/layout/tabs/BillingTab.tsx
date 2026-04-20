@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { CreditCard, Download, List, BarChart3 } from "lucide-react";
+import { PhiExportDialog } from "@/components/ui/phi-export-dialog";
 import BillingTable from "@/components/billing/BillingTable";
 import BillingAnalyticsDashboard from "@/components/billing/BillingAnalyticsDashboard";
 import BillCard from "@/components/billing/BillCard";
@@ -59,6 +61,8 @@ const exportBillsToCSV = async (bills: any[]) => {
 };
 
 export default function BillingTab({ s }: { s: CommandCenterState }) {
+  const [showExportConfirm, setShowExportConfirm] = useState(false);
+
   if (s.billsLoading) return <BillListSkeleton />;
 
   const statusFilters = [
@@ -112,12 +116,7 @@ export default function BillingTab({ s }: { s: CommandCenterState }) {
             </button>
           </div>
           <Button
-            onClick={() =>
-              exportBillsToCSV(s.allBills).catch((e) => {
-                console.error("CSV export failed:", e);
-                s.showToast("Export failed: " + (e?.message || e));
-              })
-            }
+            onClick={() => setShowExportConfirm(true)}
             variant="outline"
             size="sm"
             disabled={s.allBills.length === 0}
@@ -125,6 +124,19 @@ export default function BillingTab({ s }: { s: CommandCenterState }) {
           >
             <Download className="w-3 h-3 mr-1" /> CSV
           </Button>
+
+          <PhiExportDialog
+            open={showExportConfirm}
+            description="This CSV includes patient names, diagnoses, and billing codes. Only download to a HIPAA-compliant, secured device."
+            onCancel={() => setShowExportConfirm(false)}
+            onConfirm={() => {
+              setShowExportConfirm(false);
+              exportBillsToCSV(s.allBills).catch((e) => {
+                console.error("CSV export failed:", e);
+                s.showToast("Export failed: " + (e?.message || e));
+              });
+            }}
+          />
           <div className="text-right">
             <div className="text-lg font-bold text-primary">
               ${(s.todayStats.rvu * 35).toFixed(0)}

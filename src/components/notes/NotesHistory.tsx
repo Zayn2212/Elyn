@@ -37,6 +37,7 @@ import {
   Pen,
   RefreshCw,
   Cloud,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFacility } from "@/contexts/FacilityContext";
@@ -48,6 +49,7 @@ import {
 } from "@/lib/exportNotes";
 import { MarkdownDisplay } from "@/components/ui/markdown-display";
 import { NoteListSkeleton } from "../layout/tabs/TabSkeletons";
+import { PhiExportDialog } from "@/components/ui/phi-export-dialog";
 
 type NoteStatus = "draft" | "pending_review" | "signed";
 
@@ -233,6 +235,7 @@ export default function NotesHistory({ onToast }: NotesHistoryProps) {
   const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
   const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [pendingExport, setPendingExport] = useState<{ note: ClinicalNote; format: 'txt' | 'json' } | null>(null);
 
   // Load notes on mount and when refreshKey changes (sync from other devices)
   useEffect(() => {
@@ -355,14 +358,24 @@ export default function NotesHistory({ onToast }: NotesHistoryProps) {
     onToast("Copied to clipboard");
   };
 
-  const handleExportTxt = async (note: ClinicalNote) => {
-    await exportNoteToText(getExportData(note));
-    onToast("Exported as TXT");
+  const handleExportTxt = (note: ClinicalNote) => {
+    setPendingExport({ note, format: 'txt' });
   };
 
-  const handleExportJson = async (note: ClinicalNote) => {
-    await exportNoteToJSON(getExportData(note));
-    onToast("Exported as JSON");
+  const handleExportJson = (note: ClinicalNote) => {
+    setPendingExport({ note, format: 'json' });
+  };
+
+  const confirmExport = async () => {
+    if (!pendingExport) return;
+    if (pendingExport.format === 'txt') {
+      await exportNoteToText(getExportData(pendingExport.note));
+      onToast("Exported as TXT");
+    } else {
+      await exportNoteToJSON(getExportData(pendingExport.note));
+      onToast("Exported as JSON");
+    }
+    setPendingExport(null);
   };
 
   const clearDateFilter = () => {
@@ -957,6 +970,13 @@ export default function NotesHistory({ onToast }: NotesHistoryProps) {
           )}
         </div>
       </div>
+
+      <PhiExportDialog
+        open={!!pendingExport}
+        description="This file contains patient name, MRN, and clinical note content. Only save to a HIPAA-compliant, secured device."
+        onCancel={() => setPendingExport(null)}
+        onConfirm={confirmExport}
+      />
     </div>
   );
 }

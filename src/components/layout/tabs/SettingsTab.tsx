@@ -14,6 +14,7 @@ import {
   Trash2,
   AlertTriangle,
   X,
+  ClipboardList,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { CommandCenterState } from "@/hooks/useCommandCenter";
@@ -68,6 +69,12 @@ export default function SettingsTab({ s }: { s: CommandCenterState }) {
       label: "Theme",
       sub: s.theme === "dark" ? "Dark mode" : "Light mode",
       onClick: () => s.setTheme(s.theme === "dark" ? "light" : "dark"),
+    },
+    {
+      icon: ClipboardList,
+      label: "Audit Log",
+      sub: "HIPAA access & activity history",
+      onClick: () => s.navigate("/audit-log"),
     },
   ];
 

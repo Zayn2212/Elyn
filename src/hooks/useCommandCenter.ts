@@ -132,10 +132,23 @@ export function useCommandCenter() {
     if (speech.transcript) setEditableTranscript(speech.transcript);
   }, [speech.transcript]);
 
+  const logPhiAccess = useCallback(async (tableName: string, recordCount: number) => {
+    if (!user) return;
+    await supabase.from('audit_logs').insert({
+      user_id: user.id,
+      table_name: tableName,
+      action: 'SELECT',
+      new_data: { record_count: recordCount, context: 'command_center_load' },
+    }).then(({ error }) => {
+      if (error) console.error('Audit log write failed:', error);
+    });
+  }, [user]);
+
   const loadData = async () => {
     setIsLoading(true);
     try {
       const { data: patientsData } = await supabase.from('patients').select('*').order('updated_at', { ascending: false });
+      if (patientsData) logPhiAccess('patients', patientsData.length);
       const transformedPatients: PatientWithFacility[] = (patientsData || []).map((p, i) => ({
         id: p.id, name: p.name, mrn: p.mrn, dob: p.dob, room: p.room,
         diagnosis: p.diagnosis, allergies: p.allergies, facility_id: p.facility_id,
@@ -149,11 +162,13 @@ export function useCommandCenter() {
       const today = new Date().toISOString().split('T')[0];
       const { data: notes } = await supabase.from('clinical_notes').select('*, billing_records(*)').gte('created_at', today);
       if (notes?.length) {
+        logPhiAccess('clinical_notes', notes.length);
         const totalRvu = notes.reduce((sum: number, n: any) => sum + (n.billing_records?.[0]?.rvu ? parseFloat(n.billing_records[0].rvu) : 0), 0);
         setTodayStats({ notes: notes.length, rvu: totalRvu, consults: notes.filter((n) => n.note_type === 'consult').length, avgTime: '~3m' });
       }
 
       const { data: billsData } = await supabase.from('bills').select('*').order('date_of_service', { ascending: false }).limit(20);
+      if (billsData) logPhiAccess('bills', billsData.length);
       setBills((billsData || []).map((b) => ({
         id: b.id, patientName: b.patient_name, dateOfService: b.date_of_service,
         cptCodes: [b.cpt_code], icd10Codes: [], cptDescription: b.cpt_description,
@@ -209,6 +224,7 @@ export function useCommandCenter() {
   const handleRecordPatient = useCallback(async (patient: Patient) => {
     setSelectedPatient(patient);
     setPatientDetailOpen(false);
+    logPhiAccess('clinical_notes', 1);
     const { count } = await supabase.from('clinical_notes').select('id', { count: 'exact', head: true }).eq('patient_id', patient.id);
     setSelectedPatientHasNotes((count || 0) > 0);
     setIsRecordingSheetOpen(true);
