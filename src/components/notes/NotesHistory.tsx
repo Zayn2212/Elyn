@@ -320,6 +320,8 @@ export default function NotesHistory({ onToast }: NotesHistoryProps) {
 
       if (error) throw error;
 
+      if (user) supabase.from("audit_logs").insert({ user_id: user.id, table_name: "clinical_notes", action: "UPDATE", record_id: noteId, new_data: { context: "status_change", new_status: newStatus } }).then(({ error: e }) => { if (e) console.error("Audit log write failed:", e); });
+
       // Update local state
       setNotes((prev) =>
         prev.map((note) =>
@@ -375,6 +377,7 @@ export default function NotesHistory({ onToast }: NotesHistoryProps) {
       await exportNoteToJSON(getExportData(pendingExport.note));
       onToast("Exported as JSON");
     }
+    if (user) supabase.from("audit_logs").insert({ user_id: user.id, table_name: "clinical_notes", action: "SELECT", record_id: pendingExport.note.id, new_data: { context: `export_${pendingExport.format}` } }).then(({ error }) => { if (error) console.error("Audit log write failed:", error); });
     setPendingExport(null);
   };
 

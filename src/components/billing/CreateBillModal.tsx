@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { X, Loader2, AlertCircle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -82,6 +83,9 @@ export const CreateBillModal = ({ onComplete, onCancel, addBill }: CreateBillMod
     
     if (result.success) {
       toast.success('Bill created successfully');
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user) supabase.from("audit_logs").insert({ user_id: user.id, table_name: "bills", action: "INSERT", new_data: { patient_name: formatClaimsName(bill.patientName), mrn: bill.patientMRN, cpt_code: bill.cptCode } }).then(({ error }) => { if (error) console.error("Audit log write failed:", error); });
+      });
       onComplete();
     } else {
       toast.error(result.error || 'Failed to create bill');

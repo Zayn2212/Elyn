@@ -225,6 +225,8 @@ export default function NoteViewerModal({
     setCopiedSection(title);
     setTimeout(() => setCopiedSection(null), 2000);
     toast(`${title} copied`);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) supabase.from("audit_logs").insert({ user_id: user.id, table_name: "clinical_notes", action: "SELECT", record_id: noteId ?? null, new_data: { context: "copy_section", section: title } }).then(({ error }) => { if (error) console.error("Audit log write failed:", error); });
   };
 
   const handleCopyAll = async () => {
@@ -356,6 +358,10 @@ export default function NoteViewerModal({
 </body>
 </html>`;
 
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) supabase.from("audit_logs").insert({ user_id: user.id, table_name: "clinical_notes", action: "SELECT", record_id: noteId ?? null, new_data: { context: "print_note" } }).then(({ error }) => { if (error) console.error("Audit log write failed:", error); });
+    });
+
     if (Capacitor.isNativePlatform()) {
       const bridge = (window as any).AndroidPrint;
       if (bridge) {
@@ -405,6 +411,9 @@ export default function NoteViewerModal({
           })
           .eq("id", noteId);
         if (error) throw error;
+
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) supabase.from("audit_logs").insert({ user_id: user.id, table_name: "clinical_notes", action: "UPDATE", record_id: noteId, new_data: { context: "note_edit" } }).then(({ error: e }) => { if (e) console.error("Audit log write failed:", e); });
       }
 
       // Notify parent
