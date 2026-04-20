@@ -16,7 +16,6 @@ import {
   X,
   ClipboardList,
 } from "lucide-react";
-import { Link } from "react-router-dom";
 import type { CommandCenterState } from "@/hooks/useCommandCenter";
 import { SettingsSkeleton } from "./TabSkeletons";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,14 +28,21 @@ export default function SettingsTab({ s }: { s: CommandCenterState }) {
     setIsDeleting(true);
     try {
       // Log account deletion BEFORE invoking the function so the record exists
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user) {
-        await supabase.from("audit_logs").insert({
-          user_id: user.id,
-          table_name: "profiles",
-          action: "DELETE",
-          new_data: { context: "account_deletion_requested" },
-        }).then(({ error: e }) => { if (e) console.error("Audit log write failed:", e); });
+        await supabase
+          .from("audit_logs")
+          .insert({
+            user_id: user.id,
+            table_name: "profiles",
+            action: "DELETE",
+            new_data: { context: "account_deletion_requested" },
+          })
+          .then(({ error: e }) => {
+            if (e) console.error("Audit log write failed:", e);
+          });
       }
 
       // The supabase client automatically attaches the current session token
@@ -87,6 +93,18 @@ export default function SettingsTab({ s }: { s: CommandCenterState }) {
       sub: "HIPAA access & activity history",
       onClick: () => s.navigate("/audit-log"),
     },
+    {
+      icon: FileText,
+      label: "Terms of Service",
+      sub: "Read our terms and conditions",
+      onClick: () => s.navigate("/terms"),
+    },
+    {
+      icon: Shield,
+      label: "Privacy Policy",
+      sub: "How we handle your data",
+      onClick: () => s.navigate("/privacy"),
+    },
   ];
 
   return (
@@ -125,24 +143,7 @@ export default function SettingsTab({ s }: { s: CommandCenterState }) {
           </div>
         </div>
 
-        <div className="px-4 py-4 pb-20 md:pb-6 border-t border-border bg-background space-y-3">
-          <div className="flex items-center justify-center gap-4 py-1">
-            <Link
-              to="/terms"
-              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <FileText className="w-3.5 h-3.5" />
-              Terms of Service
-            </Link>
-            <span className="text-border text-xs">·</span>
-            <Link
-              to="/privacy"
-              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <Shield className="w-3.5 h-3.5" />
-              Privacy Policy
-            </Link>
-          </div>
+        <div className="px-4 py-4 md:pb-6 border-t border-border bg-background space-y-3">
           <Button
             onClick={s.signOut}
             variant="outline"
@@ -212,7 +213,12 @@ export default function SettingsTab({ s }: { s: CommandCenterState }) {
                 {/* Body */}
                 <div className="px-5 py-4">
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Your account will be <span className="text-foreground font-medium">permanently disabled</span>. You will be signed out immediately and will no longer be able to log in.
+                    Your account will be{" "}
+                    <span className="text-foreground font-medium">
+                      permanently disabled
+                    </span>
+                    . You will be signed out immediately and will no longer be
+                    able to log in.
                   </p>
                   <div className="mt-3 p-3 rounded-xl bg-destructive/5 border border-destructive/20">
                     <p className="text-xs text-destructive font-medium">
@@ -241,7 +247,11 @@ export default function SettingsTab({ s }: { s: CommandCenterState }) {
                       <span className="flex items-center gap-2">
                         <motion.span
                           animate={{ rotate: 360 }}
-                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                          transition={{
+                            duration: 1,
+                            repeat: Infinity,
+                            ease: "linear",
+                          }}
                           className="block w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
                         />
                         Deleting…
