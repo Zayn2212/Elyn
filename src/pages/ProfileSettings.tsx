@@ -195,6 +195,12 @@ const ProfileSettings = () => {
         variant: "destructive",
       });
     } else {
+      supabase.from("audit_logs").insert({
+        user_id: user.id,
+        table_name: "profiles",
+        action: "UPDATE",
+        new_data: { fields_updated: ["full_name", "specialty", "npi_number", "tax_id", "taxonomy_code", "billing_address", "place_of_service_default"] },
+      }).then(({ error: e }) => { if (e) console.error("Audit log write failed:", e); });
       toast({
         title: "Profile updated",
         description: "Your profile has been saved successfully.",

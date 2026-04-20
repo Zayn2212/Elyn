@@ -158,6 +158,8 @@ const PracticeManager = () => {
 
         setPatients(enrichedPatients);
         setBillingRecords(billingRes.data || []);
+
+        supabase.from('audit_logs').insert({ user_id: user.id, table_name: 'patients', action: 'SELECT', new_data: { context: 'practice_manager_view', patient_count: (patientsRes.data || []).length, billing_record_count: (billingRes.data || []).length } }).then(({ error: e }) => { if (e) console.error('Audit log write failed:', e); });
       } catch (error: any) {
         toast({
           title: "Error loading data",

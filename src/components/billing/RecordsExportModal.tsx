@@ -88,6 +88,9 @@ export const RecordsExportModal = ({
     a.click();
     URL.revokeObjectURL(url);
     toast.success(`Exported ${filteredRecords.length} billing records`);
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) supabase.from("audit_logs").insert({ user_id: user.id, table_name: "billing_records", action: "SELECT", new_data: { context: "csv_export", record_count: filteredRecords.length } }).then(({ error }) => { if (error) console.error("Audit log write failed:", error); });
+    });
     onClose();
   };
 

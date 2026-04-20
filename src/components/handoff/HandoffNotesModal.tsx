@@ -27,6 +27,7 @@ import { Capacitor } from "@capacitor/core";
 import { Filesystem, Directory, Encoding } from "@capacitor/filesystem";
 import { Share } from "@capacitor/share";
 import { MarkdownDisplay } from "@/components/ui/markdown-display";
+import { PhiExportDialog } from "@/components/ui/phi-export-dialog";
 
 interface HandoffNotesModalProps {
   isOpen: boolean;
@@ -75,6 +76,7 @@ export default function HandoffNotesModal({
   const [copied, setCopied] = useState(false);
   const [showPatientList, setShowPatientList] = useState(true);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [showExportConfirm, setShowExportConfirm] = useState(false);
 
   // Filter active patients (not discharged)
   const activePatients = useMemo(() => {
@@ -591,7 +593,7 @@ export default function HandoffNotesModal({
                       Copy
                     </Button>
                     <Button
-                      onClick={exportAsText}
+                      onClick={() => setShowExportConfirm(true)}
                       disabled={isStreaming}
                       className="flex-1 h-11 rounded-xl bg-primary hover:bg-primary/90 px-2"
                     >
@@ -605,6 +607,16 @@ export default function HandoffNotesModal({
           </div>
         </>
       )}
+
+      <PhiExportDialog
+        open={showExportConfirm}
+        description="This handoff file contains patient names, diagnoses, and clinical summaries. Only save to a HIPAA-compliant, secured device."
+        onCancel={() => setShowExportConfirm(false)}
+        onConfirm={() => {
+          setShowExportConfirm(false);
+          exportAsText();
+        }}
+      />
     </AnimatePresence>
   );
 }

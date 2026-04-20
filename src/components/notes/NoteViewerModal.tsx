@@ -31,8 +31,10 @@ import {
   Save,
   Edit3,
   Sparkles,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PhiExportDialog } from "@/components/ui/phi-export-dialog";
 
 type NoteStatus = "draft" | "pending_review" | "signed";
 
@@ -202,6 +204,7 @@ export default function NoteViewerModal({
     {},
   );
   const [isSaving, setIsSaving] = useState(false);
+  const [pendingExport, setPendingExport] = useState<'txt' | 'json' | null>(null);
 
   // Reset edit state when note changes
   useEffect(() => {
@@ -222,6 +225,8 @@ export default function NoteViewerModal({
     setCopiedSection(title);
     setTimeout(() => setCopiedSection(null), 2000);
     toast(`${title} copied`);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) supabase.from("audit_logs").insert({ user_id: user.id, table_name: "clinical_notes", action: "SELECT", record_id: noteId ?? null, new_data: { context: "copy_section", section: title } }).then(({ error }) => { if (error) console.error("Audit log write failed:", error); });
   };
 
   const handleCopyAll = async () => {
@@ -353,6 +358,10 @@ export default function NoteViewerModal({
 </body>
 </html>`;
 
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) supabase.from("audit_logs").insert({ user_id: user.id, table_name: "clinical_notes", action: "SELECT", record_id: noteId ?? null, new_data: { context: "print_note" } }).then(({ error }) => { if (error) console.error("Audit log write failed:", error); });
+    });
+
     if (Capacitor.isNativePlatform()) {
       const bridge = (window as any).AndroidPrint;
       if (bridge) {
@@ -402,6 +411,9 @@ export default function NoteViewerModal({
           })
           .eq("id", noteId);
         if (error) throw error;
+
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) supabase.from("audit_logs").insert({ user_id: user.id, table_name: "clinical_notes", action: "UPDATE", record_id: noteId, new_data: { context: "note_edit" } }).then(({ error: e }) => { if (e) console.error("Audit log write failed:", e); });
       }
 
       // Notify parent
@@ -773,10 +785,7 @@ export default function NoteViewerModal({
                 {copiedAll ? "Copied" : "Copy All"}
               </Button>
               <Button
-                onClick={async () => {
-                  await exportNoteToText(isEditing ? buildFullNote() : note);
-                  toast("Exported TXT");
-                }}
+                onClick={() => setPendingExport('txt')}
                 variant="outline"
                 size="sm"
                 className="rounded-lg hover:bg-transparent md:hover:bg-accent"
@@ -785,10 +794,7 @@ export default function NoteViewerModal({
                 TXT
               </Button>
               <Button
-                onClick={async () => {
-                  await exportNoteToJSON(isEditing ? buildFullNote() : note);
-                  toast("Exported JSON");
-                }}
+                onClick={() => setPendingExport('json')}
                 variant="outline"
                 size="sm"
                 className="rounded-lg hover:bg-transparent md:hover:bg-accent"
@@ -811,6 +817,23 @@ export default function NoteViewerModal({
           </motion.div>
         </div>
       )}
+
+      <PhiExportDialog
+        open={!!pendingExport}
+        description="This file contains patient name, MRN, and clinical note content. Only save to a HIPAA-compliant, secured device."
+        onCancel={() => setPendingExport(null)}
+        onConfirm={async () => {
+          const exportNote = isEditing ? buildFullNote() : note;
+          if (pendingExport === 'txt') {
+            await exportNoteToText(exportNote);
+            toast("Exported TXT");
+          } else {
+            await exportNoteToJSON(exportNote);
+            toast("Exported JSON");
+          }
+          setPendingExport(null);
+        }}
+      />
     </AnimatePresence>
   );
 }
