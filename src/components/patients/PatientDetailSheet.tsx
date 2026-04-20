@@ -122,6 +122,7 @@ export default function PatientDetailSheet({
   const [deleteNoteId, setDeleteNoteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [pendingExportNote, setPendingExportNote] = useState<ClinicalNote | null>(null);
+  const [pendingCopyNote, setPendingCopyNote] = useState<ClinicalNote | null>(null);
 
   // Patient edit state
   const [isEditingPatient, setIsEditingPatient] = useState(false);
@@ -213,11 +214,8 @@ export default function PatientDetailSheet({
     generatedNote: note.generated_note || "",
   });
 
-  const handleCopy = async (note: ClinicalNote) => {
-    await copyNoteToClipboard(getExportData(note));
-    setCopiedNoteId(note.id);
-    setTimeout(() => setCopiedNoteId(null), 2000);
-    onToast("Copied to clipboard");
+  const handleCopy = (note: ClinicalNote) => {
+    setPendingCopyNote(note);
   };
 
   const handleExportTxt = (note: ClinicalNote) => {
@@ -1289,6 +1287,21 @@ export default function PatientDetailSheet({
               await exportNoteToText(getExportData(pendingExportNote));
               onToast("Exported as TXT");
               setPendingExportNote(null);
+            }}
+          />
+
+          <PhiExportDialog
+            open={!!pendingCopyNote}
+            description="This will copy patient name, MRN, and clinical note content to your clipboard. Only use on a HIPAA-compliant, secured device."
+            confirmLabel="I understand, copy"
+            onCancel={() => setPendingCopyNote(null)}
+            onConfirm={async () => {
+              if (!pendingCopyNote) return;
+              await copyNoteToClipboard(getExportData(pendingCopyNote));
+              setCopiedNoteId(pendingCopyNote.id);
+              setTimeout(() => setCopiedNoteId(null), 2000);
+              onToast("Copied to clipboard");
+              setPendingCopyNote(null);
             }}
           />
 

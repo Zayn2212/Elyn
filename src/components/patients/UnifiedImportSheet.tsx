@@ -244,6 +244,13 @@ function PasteImportTab({
 
       if (insertErr) throw insertErr;
 
+      supabase.from("audit_logs").insert({
+        user_id: user.id,
+        table_name: "patients",
+        action: "INSERT",
+        new_data: { name: patientData.name, mrn: patientData.mrn || null },
+      }).then(({ error }) => { if (error) console.error("Audit log write failed:", error); });
+
       setDone(true);
       setCreatedName(patientData.name);
       onToast(`Patient added: ${patientData.name}`);
