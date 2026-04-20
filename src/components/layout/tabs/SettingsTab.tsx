@@ -28,6 +28,17 @@ export default function SettingsTab({ s }: { s: CommandCenterState }) {
   const handleDeleteAccount = async () => {
     setIsDeleting(true);
     try {
+      // Log account deletion BEFORE invoking the function so the record exists
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from("audit_logs").insert({
+          user_id: user.id,
+          table_name: "profiles",
+          action: "DELETE",
+          new_data: { context: "account_deletion_requested" },
+        }).then(({ error: e }) => { if (e) console.error("Audit log write failed:", e); });
+      }
+
       // The supabase client automatically attaches the current session token
       const { error } = await supabase.functions.invoke("delete-account");
 
