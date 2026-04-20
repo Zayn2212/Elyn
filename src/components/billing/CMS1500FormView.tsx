@@ -9,6 +9,7 @@ import { X, Printer, Download, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CMS1500Data } from '@/lib/cms1500Generator';
 import { download837P } from '@/lib/edi837Generator';
+import { supabase } from '@/integrations/supabase/client';
 
 interface CMS1500FormViewProps {
   data: CMS1500Data;
@@ -29,10 +30,16 @@ const CMS1500FormView: React.FC<CMS1500FormViewProps> = ({ data, isOpen, onClose
   if (!isOpen) return null;
 
   const handlePrint = () => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) supabase.from("audit_logs").insert({ user_id: user.id, table_name: "bills", action: "SELECT", new_data: { context: "print_cms1500", patient_account: data.patientAccountNo || null } }).then(({ error }) => { if (error) console.error("Audit log write failed:", error); });
+    });
     window.print();
   };
 
   const handleExportEDI = () => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) supabase.from("audit_logs").insert({ user_id: user.id, table_name: "bills", action: "SELECT", new_data: { context: "export_837p", patient_account: data.patientAccountNo || null } }).then(({ error }) => { if (error) console.error("Audit log write failed:", error); });
+    });
     download837P([data], `837P_${data.patientAccountNo || 'claim'}.edi`);
   };
 

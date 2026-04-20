@@ -64,7 +64,8 @@ export default function BottomNav({
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bottom-nav md:hidden">
-      <div className="flex items-center justify-around h-16 px-2">
+      {/* safe-area-inset-bottom for iPhone home bar */}
+      <div className="flex items-center justify-around h-14 px-1 pb-[env(safe-area-inset-bottom)]">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -75,15 +76,15 @@ export default function BottomNav({
                 key={tab.id}
                 onClick={onRecordPress}
                 className={cn(
-                  "relative flex items-center justify-center w-14 h-14 -mt-14 rounded-full transition-all duration-200",
+                  "relative flex items-center justify-center w-12 h-12 -mt-6 rounded-full transition-all duration-200 shadow-lg",
                   isRecording
                     ? "bg-destructive recording-pulse"
-                    : "bg-gradient-to-br from-primary to-primary shadow-lg",
+                    : "bg-gradient-to-br from-primary to-blue-600 dark:to-secondary",
                 )}
               >
                 <Icon
                   className={cn(
-                    "w-6 h-6",
+                    "w-5 h-5",
                     isRecording
                       ? "text-destructive-foreground animate-pulse"
                       : "text-primary-foreground",
@@ -105,18 +106,18 @@ export default function BottomNav({
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
               className={cn(
-                "flex flex-col items-center gap-1 py-2 px-4 rounded-xl transition-all duration-200",
+                "relative flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-xl transition-all duration-200 min-w-0 flex-1",
                 isActive
                   ? "text-primary"
                   : "text-muted-foreground hover:text-foreground",
               )}
             >
-              <Icon className={cn("w-5 h-5", isActive && "text-primary")} />
-              <span className="text-[10px] font-medium">{tab.label}</span>
+              <Icon className={cn("w-5 h-5 shrink-0", isActive && "text-primary")} />
+              <span className="text-[9px] font-medium truncate w-full text-center">{tab.label}</span>
               {isActive && (
                 <motion.div
                   layoutId="bottomNavIndicator"
-                  className="absolute bottom-1 w-1 h-1 rounded-full bg-primary"
+                  className="absolute bottom-0.5 w-1 h-1 rounded-full bg-primary"
                   transition={{ type: "spring", stiffness: 500, damping: 30 }}
                 />
               )}

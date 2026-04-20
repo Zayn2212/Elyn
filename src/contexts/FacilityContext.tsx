@@ -126,6 +126,8 @@ export function FacilityProvider({ children }: { children: ReactNode }) {
         created_at: data.created_at,
       };
 
+      supabase.from('audit_logs').insert({ user_id: user.id, table_name: 'facilities', action: 'INSERT', record_id: data.id, new_data: { name: data.name, is_default: data.is_default } }).then(({ error: e }) => { if (e) console.error('Audit log write failed:', e); });
+
       await fetchFacilities();
       return newFacility;
     } catch (e) {
@@ -145,6 +147,9 @@ export function FacilityProvider({ children }: { children: ReactNode }) {
         .eq('user_id', user.id);
 
       if (error) throw error;
+
+      supabase.from('audit_logs').insert({ user_id: user.id, table_name: 'facilities', action: 'UPDATE', record_id: id, new_data: updates }).then(({ error: e }) => { if (e) console.error('Audit log write failed:', e); });
+
       await fetchFacilities();
     } catch (e) {
       console.error('Failed to update facility:', e);
@@ -162,6 +167,8 @@ export function FacilityProvider({ children }: { children: ReactNode }) {
         .eq('user_id', user.id);
 
       if (error) throw error;
+
+      supabase.from('audit_logs').insert({ user_id: user.id, table_name: 'facilities', action: 'DELETE', record_id: id, new_data: { context: 'facility_deleted' } }).then(({ error: e }) => { if (e) console.error('Audit log write failed:', e); });
 
       if (selectedFacilityId === id) {
         setSelectedFacilityId('all');
@@ -188,6 +195,8 @@ export function FacilityProvider({ children }: { children: ReactNode }) {
         .update({ is_default: true })
         .eq('id', id)
         .eq('user_id', user.id);
+
+      supabase.from('audit_logs').insert({ user_id: user.id, table_name: 'facilities', action: 'UPDATE', record_id: id, new_data: { context: 'set_default_facility' } }).then(({ error: e }) => { if (e) console.error('Audit log write failed:', e); });
 
       await fetchFacilities();
     } catch (e) {

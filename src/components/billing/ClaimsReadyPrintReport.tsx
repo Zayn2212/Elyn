@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { X, Check, AlertTriangle, AlertCircle, Printer, Filter } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { UnifiedBill } from '@/hooks/useBilling';
@@ -123,6 +124,9 @@ export const ClaimsReadyPrintReport = ({
   }, [displayBills]);
 
   const handlePrint = () => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) supabase.from("audit_logs").insert({ user_id: user.id, table_name: "bills", action: "SELECT", new_data: { context: "print_claims_report", bill_count: displayBills.length } }).then(({ error }) => { if (error) console.error("Audit log write failed:", error); });
+    });
     if (validationSummary.errors > 0 && !filterClaimsReady) {
       const proceed = window.confirm(
         `${validationSummary.errors} bill(s) have missing claims data and may be denied. Print only claims-ready bills instead?`

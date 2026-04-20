@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
 import { X, Check, Trash2, Plus, DollarSign, AlertCircle, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -73,6 +74,9 @@ export default function BillingRecordEditModal({
         em_level: emLevel || null,
         mdm_complexity: mdmComplexity || null,
         rvu: rvu ? parseFloat(rvu) : null,
+      });
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user) supabase.from("audit_logs").insert({ user_id: user.id, table_name: "billing_records", action: "UPDATE", record_id: record.id, new_data: { icd10_codes: icd10Codes, cpt_codes: cptCodes, em_level: emLevel || null, rvu: rvu || null } }).then(({ error }) => { if (error) console.error("Audit log write failed:", error); });
       });
       onClose();
     } catch (err) {

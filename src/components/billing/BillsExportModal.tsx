@@ -198,10 +198,16 @@ export const BillsExportModal = ({ bills, onClose }: BillsExportModalProps) => {
 
   const handleExport = () => {
     downloadCSV(filteredBills, startDate, endDate);
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) supabase.from("audit_logs").insert({ user_id: user.id, table_name: "bills", action: "SELECT", new_data: { context: "csv_export", bill_count: filteredBills.length } }).then(({ error }) => { if (error) console.error("Audit log write failed:", error); });
+    });
     onClose();
   };
 
   const handlePrint = () => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) supabase.from("audit_logs").insert({ user_id: user.id, table_name: "bills", action: "SELECT", new_data: { context: "print_billing_report", bill_count: filteredBills.length } }).then(({ error }) => { if (error) console.error("Audit log write failed:", error); });
+    });
     setShowPrintView(true);
     setTimeout(() => {
       window.print();

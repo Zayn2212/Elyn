@@ -41,7 +41,7 @@ async function shareFile(filename: string, content: string): Promise<void> {
 
 export async function exportNoteToText(note: NoteExport): Promise<void> {
   const timestamp = new Date().toLocaleString();
-  const filename = `clinical-note-${note.patientName?.replace(/\s+/g, '-') || 'unknown'}-${new Date().toISOString().split('T')[0]}.txt`;
+  const filename = `clinical-note-${note.mrn || new Date().toISOString().split('T')[0]}.txt`;
 
   const content = `
 ================================================================================
@@ -75,7 +75,7 @@ ${note.generatedNote}
 }
 
 export async function exportNoteToJSON(note: NoteExport): Promise<void> {
-  const filename = `clinical-note-${note.patientName?.replace(/\s+/g, '-') || 'unknown'}-${new Date().toISOString().split('T')[0]}.json`;
+  const filename = `clinical-note-${note.mrn || new Date().toISOString().split('T')[0]}.json`;
 
   const data = {
     ...note,

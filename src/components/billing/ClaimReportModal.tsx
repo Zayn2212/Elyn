@@ -23,6 +23,7 @@ import type { UnifiedBill } from "@/hooks/useBilling";
 import { Capacitor } from "@capacitor/core";
 import { Filesystem, Directory, Encoding } from "@capacitor/filesystem";
 import { Share } from "@capacitor/share";
+import { PhiExportDialog } from "@/components/ui/phi-export-dialog";
 import {
   formatClaimsName,
   formatClaimsDOB,
@@ -152,6 +153,7 @@ export default function ClaimReportModal({
   const [providerName, setProviderName] = useState<string | null>(
     bill.provider_name || null,
   );
+  const [pendingAction, setPendingAction] = useState<'csv' | 'print' | null>(null);
 
   // Fetch provider name from profile if not already set
   useEffect(() => {
@@ -461,7 +463,7 @@ export default function ClaimReportModal({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={handlePrint}
+                onClick={() => setPendingAction('print')}
                 className="rounded-lg px-3"
               >
                 <Printer className="w-4 h-4 mr-1.5" />
@@ -471,7 +473,7 @@ export default function ClaimReportModal({
             <Button
               variant="outline"
               size="sm"
-              onClick={handleDownloadCSV}
+              onClick={() => setPendingAction('csv')}
               className="rounded-lg px-2 sm:px-3"
             >
               <Download className="w-4 h-4 sm:mr-1.5" />
@@ -757,6 +759,23 @@ export default function ClaimReportModal({
           summary • Not a final EDI 837
         </div>
       </motion.div>
+
+      <PhiExportDialog
+        open={!!pendingAction}
+        description={
+          pendingAction === 'csv'
+            ? "This claim report contains patient name, DOB, MRN, insurance, and billing codes. Only save to a HIPAA-compliant, secured device."
+            : "This claim report contains patient name, DOB, MRN, insurance, and billing codes. Only print on a secured printer in a private location."
+        }
+        confirmLabel="I understand, proceed"
+        onCancel={() => setPendingAction(null)}
+        onConfirm={() => {
+          const action = pendingAction;
+          setPendingAction(null);
+          if (action === 'csv') handleDownloadCSV();
+          else handlePrint();
+        }}
+      />
 
       {/* Print Styles */}
       <style>{`

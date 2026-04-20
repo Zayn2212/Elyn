@@ -65,6 +65,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [checkAdminRole]);
 
   const signOut = async () => {
+    if (user) {
+      await supabase.from('audit_logs').insert({ user_id: user.id, table_name: 'profiles', action: 'SELECT', new_data: { context: 'sign_out' } }).then(({ error: e }) => { if (e) console.error('Audit log write failed:', e); });
+    }
     await supabase.auth.signOut({ scope: 'local' });
   };
 

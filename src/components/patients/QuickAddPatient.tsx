@@ -197,6 +197,14 @@ export default function QuickAddPatient({
 
       if (patientError) throw patientError;
 
+      supabase.from("audit_logs").insert({
+        user_id: user.id,
+        table_name: "patients",
+        action: "INSERT",
+        record_id: patient?.id ?? null,
+        new_data: { name: claimsName.trim(), mrn: formattedMrn || null },
+      }).then(({ error }) => { if (error) console.error("Audit log write failed:", error); });
+
       const selectedFacility = facilities.find(
         (f) => f.id === formData.facilityId,
       );

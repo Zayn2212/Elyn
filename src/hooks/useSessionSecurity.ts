@@ -1,18 +1,21 @@
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
 const SESSION_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
+const WARNING_BEFORE_MS = 60 * 1000; // Warn 1 minute before timeout
 const ACTIVITY_CHECK_INTERVAL = 60 * 1000; // Check every minute
 
 export const useSessionSecurity = () => {
   const { user, session, signOut } = useAuth();
   const lastActivityRef = useRef<number>(Date.now());
   const sessionIdRef = useRef<string | null>(null);
+  const [showTimeoutWarning, setShowTimeoutWarning] = useState(false);
 
   // Track user activity
   const updateActivity = useCallback(() => {
     lastActivityRef.current = Date.now();
+    setShowTimeoutWarning(false);
   }, []);
 
   // Register session in database
@@ -152,11 +155,14 @@ export const useSessionSecurity = () => {
       const timeSinceLastActivity = Date.now() - lastActivityRef.current;
 
       if (timeSinceLastActivity >= SESSION_TIMEOUT_MS) {
-        // Session expired - sign out
+        setShowTimeoutWarning(false);
         deactivateSession();
         signOut();
+      } else if (timeSinceLastActivity >= SESSION_TIMEOUT_MS - WARNING_BEFORE_MS) {
+        setShowTimeoutWarning(true);
+        updateSessionActivity();
       } else {
-        // Update session activity in database
+        setShowTimeoutWarning(false);
         updateSessionActivity();
       }
     };
@@ -170,5 +176,6 @@ export const useSessionSecurity = () => {
     signOutAllDevices,
     getActiveSessions,
     updateActivity,
+    showTimeoutWarning,
   };
 };

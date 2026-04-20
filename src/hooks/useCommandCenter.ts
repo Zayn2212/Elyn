@@ -132,10 +132,23 @@ export function useCommandCenter() {
     if (speech.transcript) setEditableTranscript(speech.transcript);
   }, [speech.transcript]);
 
+  const logPhiAccess = useCallback(async (tableName: string, recordCount: number) => {
+    if (!user) return;
+    await supabase.from('audit_logs').insert({
+      user_id: user.id,
+      table_name: tableName,
+      action: 'SELECT',
+      new_data: { record_count: recordCount, context: 'command_center_load' },
+    }).then(({ error }) => {
+      if (error) console.error('Audit log write failed:', error);
+    });
+  }, [user]);
+
   const loadData = async () => {
     setIsLoading(true);
     try {
       const { data: patientsData } = await supabase.from('patients').select('*').order('updated_at', { ascending: false });
+      if (patientsData) logPhiAccess('patients', patientsData.length);
       const transformedPatients: PatientWithFacility[] = (patientsData || []).map((p, i) => ({
         id: p.id, name: p.name, mrn: p.mrn, dob: p.dob, room: p.room,
         diagnosis: p.diagnosis, allergies: p.allergies, facility_id: p.facility_id,
@@ -149,11 +162,13 @@ export function useCommandCenter() {
       const today = new Date().toISOString().split('T')[0];
       const { data: notes } = await supabase.from('clinical_notes').select('*, billing_records(*)').gte('created_at', today);
       if (notes?.length) {
+        logPhiAccess('clinical_notes', notes.length);
         const totalRvu = notes.reduce((sum: number, n: any) => sum + (n.billing_records?.[0]?.rvu ? parseFloat(n.billing_records[0].rvu) : 0), 0);
         setTodayStats({ notes: notes.length, rvu: totalRvu, consults: notes.filter((n) => n.note_type === 'consult').length, avgTime: '~3m' });
       }
 
       const { data: billsData } = await supabase.from('bills').select('*').order('date_of_service', { ascending: false }).limit(20);
+      if (billsData) logPhiAccess('bills', billsData.length);
       setBills((billsData || []).map((b) => ({
         id: b.id, patientName: b.patient_name, dateOfService: b.date_of_service,
         cptCodes: [b.cpt_code], icd10Codes: [], cptDescription: b.cpt_description,
@@ -209,6 +224,7 @@ export function useCommandCenter() {
   const handleRecordPatient = useCallback(async (patient: Patient) => {
     setSelectedPatient(patient);
     setPatientDetailOpen(false);
+    logPhiAccess('clinical_notes', 1);
     const { count } = await supabase.from('clinical_notes').select('id', { count: 'exact', head: true }).eq('patient_id', patient.id);
     setSelectedPatientHasNotes((count || 0) > 0);
     setIsRecordingSheetOpen(true);
@@ -218,6 +234,7 @@ export function useCommandCenter() {
     try {
       const { error } = await supabase.from('patients').update({ status: newStatus }).eq('id', patientId);
       if (error) throw error;
+      if (user) supabase.from('audit_logs').insert({ user_id: user.id, table_name: 'patients', action: 'UPDATE', record_id: patientId, new_data: { context: 'status_change', new_status: newStatus } }).then(({ error: e }) => { if (e) console.error('Audit log write failed:', e); });
       setPatients(prev => prev.map(p => p.id === patientId ? { ...p, status: newStatus } : p));
       const statusLabels: Record<PatientStatus, string> = { not_seen: 'Not Seen', in_progress: 'In Progress', seen: 'Seen', signed: 'Signed', discharged: 'Discharged' };
       showToast(`Status updated to ${statusLabels[newStatus]}`);
@@ -225,7 +242,7 @@ export function useCommandCenter() {
       console.error('Error updating status:', e);
       showToast('Error updating status');
     }
-  }, [showToast]);
+  }, [user, showToast]);
 
   const handleOpenDischargeModal = useCallback((patient: Patient) => {
     setPatientToDischarge(patient);
@@ -235,6 +252,7 @@ export function useCommandCenter() {
   const handleDischarge = useCallback(async (data: { patientId: string; dischargeCptCode: string }) => {
     try {
       await supabase.from('patients').update({ status: 'discharged', updated_at: new Date().toISOString() }).eq('id', data.patientId);
+      if (user) supabase.from('audit_logs').insert({ user_id: user.id, table_name: 'patients', action: 'UPDATE', record_id: data.patientId, new_data: { context: 'discharge', cpt_code: data.dischargeCptCode } }).then(({ error: e }) => { if (e) console.error('Audit log write failed:', e); });
       const dischargeRvu = data.dischargeCptCode === '99239' ? 1.90 : 1.28;
       await supabase.from('bills').insert({
         user_id: user?.id as string, patient_name: patientToDischarge?.name || 'Unknown',
@@ -244,6 +262,7 @@ export function useCommandCenter() {
         diagnosis: patientToDischarge?.diagnosis || null, rvu: dischargeRvu,
         facility: selectedFacility?.name || null, status: 'pending',
       });
+      if (user) supabase.from('audit_logs').insert({ user_id: user.id, table_name: 'bills', action: 'INSERT', new_data: { context: 'discharge_bill', cpt_code: data.dischargeCptCode, rvu: dischargeRvu } }).then(({ error: e }) => { if (e) console.error('Audit log write failed:', e); });
       setPatients(prev => prev.map(p => p.id === data.patientId ? { ...p, status: 'discharged' as PatientStatus } : p));
       setTodayStats(prev => ({ ...prev, rvu: prev.rvu + dischargeRvu }));
       showToast(`${patientToDischarge?.name} discharged successfully`);
@@ -365,12 +384,14 @@ export function useCommandCenter() {
         reviewed_at: new Date().toISOString(),
         reviewed_by: user?.id,
       }).select().single();
+      if (user) supabase.from('audit_logs').insert({ user_id: user.id, table_name: 'clinical_notes', action: 'INSERT', record_id: savedNote?.id ?? null, new_data: { note_type: noteTypeValue, patient_id: selectedPatient?.id ?? null } }).then(({ error: e }) => { if (e) console.error('Audit log write failed:', e); });
 
       await supabase.from('billing_records').insert({
         user_id: user?.id as string, note_id: savedNote?.id as string,
         icd10_codes: confirmedBilling.icd10.map(c => c.code), cpt_codes: confirmedBilling.cpt.map(c => c.code),
         em_level: confirmedBilling.emLevel, rvu: confirmedBilling.rvu, mdm_complexity: confirmedBilling.mdmComplexity,
       });
+      if (user) supabase.from('audit_logs').insert({ user_id: user.id, table_name: 'billing_records', action: 'INSERT', record_id: savedNote?.id ?? null, new_data: { em_level: confirmedBilling.emLevel, rvu: confirmedBilling.rvu, cpt_codes: confirmedBilling.cpt.map(c => c.code) } }).then(({ error: e }) => { if (e) console.error('Audit log write failed:', e); });
 
       if (confirmedBilling.cpt.length > 0) {
         await supabase.from('bills').insert({
@@ -380,6 +401,7 @@ export function useCommandCenter() {
           diagnosis: selectedPatient?.diagnosis || confirmedBilling.icd10[0]?.description || null,
           rvu: confirmedBilling.rvu, facility: selectedFacility?.name || null, status: 'pending',
         });
+        if (user) supabase.from('audit_logs').insert({ user_id: user.id, table_name: 'bills', action: 'INSERT', new_data: { cpt_code: confirmedBilling.cpt[0].code, rvu: confirmedBilling.rvu, patient_id: selectedPatient?.id ?? null } }).then(({ error: e }) => { if (e) console.error('Audit log write failed:', e); });
       }
 
       setTodayStats(prev => ({ notes: prev.notes + 1, rvu: prev.rvu + confirmedBilling.rvu, consults: noteType === 'Consult' ? prev.consults + 1 : prev.consults, avgTime: '~3m' }));
