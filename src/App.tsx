@@ -19,6 +19,7 @@ import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { FacilityProvider } from "@/contexts/FacilityContext";
 import { SyncProvider } from "@/contexts/SyncContext";
 import AdminRoute from "@/components/auth/AdminRoute";
+import FeedbackWidget from "@/components/feedback/FeedbackWidget";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import BillingAgent from "./pages/BillingAgent";
@@ -202,6 +203,7 @@ const App = () => (
             <SyncProvider>
               <FacilityProvider>
                 <AppRoutes />
+                <FeedbackWidget />
               </FacilityProvider>
             </SyncProvider>
           </AuthProvider>
