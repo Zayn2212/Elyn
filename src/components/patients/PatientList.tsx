@@ -119,7 +119,7 @@ export default function PatientList({
   };
 
   return (
-    <div className="flex flex-col flex-1 min-h-0 h-full">
+    <div className="flex flex-col flex-1 min-h-0">
       {/* Search, Status Filter & Sort */}
       <div className="flex-shrink-0 px-4 pt-4 pb-3 border-b border-border/30">
         <div className="flex items-center gap-2">

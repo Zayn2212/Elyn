@@ -21,20 +21,22 @@ export default function PatientsTab({ s }: { s: CommandCenterState }) {
       className="absolute inset-0 flex flex-col overflow-hidden"
     >
       {/* Split-pane */}
-      <div className="flex-1 min-h-0 md:grid md:grid-cols-2 md:[grid-template-rows:1fr] overflow-hidden">
-        <div className="min-h-0 md:border-r md:border-border flex flex-col overflow-hidden">
-          <div className="flex-shrink-0 px-3 sm:px-4 pt-3">
-            <OnboardingChecklist />
+      <div className="flex-1 min-h-0 overflow-hidden md:grid md:grid-cols-2">
+        <div className="h-full md:border-r md:border-border flex flex-col overflow-hidden">
+          <div className="flex-1 min-h-0 overflow-y-auto">
+            <div className="px-3 sm:px-4 pt-3">
+              <OnboardingChecklist />
+            </div>
+            <PatientList
+              patients={s.filteredPatients}
+              onPatientSelect={s.handlePatientSelect}
+              onRecordPatient={s.handleRecordPatient}
+              onStatusChange={s.handleStatusChange}
+              selectedPatientId={s.selectedPatient?.id}
+              facilities={s.facilities}
+              onEMRImport={() => s.setIsEMRImportOpen(true)}
+            />
           </div>
-          <PatientList
-            patients={s.filteredPatients}
-            onPatientSelect={s.handlePatientSelect}
-            onRecordPatient={s.handleRecordPatient}
-            onStatusChange={s.handleStatusChange}
-            selectedPatientId={s.selectedPatient?.id}
-            facilities={s.facilities}
-            onEMRImport={() => s.setIsEMRImportOpen(true)}
-          />
         </div>
 
         <div className="hidden md:flex md:flex-col min-h-0 overflow-hidden">
