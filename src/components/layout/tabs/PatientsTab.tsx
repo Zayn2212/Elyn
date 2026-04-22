@@ -21,7 +21,7 @@ export default function PatientsTab({ s }: { s: CommandCenterState }) {
       className="h-full flex flex-col relative"
     >
       {/* Split-pane */}
-      <div className="flex-1 min-h-0 md:grid md:grid-cols-2">
+      <div className="flex-1 min-h-0 md:grid md:grid-cols-2 md:h-full">
         <div className="h-full md:border-r md:border-border flex flex-col">
           <div className="flex-1 min-h-0 overflow-y-auto">
             <div className="px-3 sm:px-4 pt-3">
@@ -39,7 +39,7 @@ export default function PatientsTab({ s }: { s: CommandCenterState }) {
           </div>
         </div>
 
-        <div className="hidden md:block overflow-hidden">
+        <div className="hidden md:flex md:flex-col min-h-0 overflow-hidden">
           {s.selectedPatient ? (
             <PatientDetailPanel
               patient={s.selectedPatient}

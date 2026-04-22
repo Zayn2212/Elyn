@@ -37,7 +37,7 @@ export default function CommandCenter() {
       )}
       <CommandCenterHeader s={s} />
 
-      <main className="flex-1 overflow-hidden">
+      <main className="flex-1 min-h-0 overflow-hidden">
         <AnimatePresence mode="wait">
           {s.activeTab === 'patients' && <PatientsTab s={s} />}
           {s.activeTab === 'notes' && (

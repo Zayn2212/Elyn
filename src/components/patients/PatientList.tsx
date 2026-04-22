@@ -185,7 +185,7 @@ export default function PatientList({
       </div>
 
       {/* Patient Cards */}
-      <div className="flex-1 min-h-0 overflow-y-auto px-4 pt-3 pb-24 space-y-3">
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 pt-3 pb-24 md:pb-4 space-y-3">
         <AnimatePresence mode="popLayout">
           {filteredPatients.map((patient, index) => (
             <motion.div

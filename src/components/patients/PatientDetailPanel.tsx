@@ -157,7 +157,7 @@ export default function PatientDetailPanel({
       key={patient.id}
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
-      className="h-full overflow-y-auto p-6"
+      className="flex-1 min-h-0 overflow-y-auto p-6"
     >
       {/* Priority / Acuity Score Card */}
       {acuityScore != null && acuityScore > 0 && (
