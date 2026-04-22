@@ -114,7 +114,7 @@ export default function SettingsTab({ s }: { s: CommandCenterState }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="h-full flex flex-col overflow-hidden"
+        className="absolute inset-0 flex flex-col overflow-hidden"
       >
         <div className="flex-1 px-4 pt-4 pb-4 overflow-y-auto scrollbar-thin">
           <h2 className="text-xl font-bold text-foreground mb-4">

@@ -37,11 +37,11 @@ export default function CommandCenter() {
       )}
       <CommandCenterHeader s={s} />
 
-      <main className="flex-1 min-h-0 overflow-hidden">
+      <main className="flex-1 min-h-0 relative overflow-hidden">
         <AnimatePresence mode="wait">
           {s.activeTab === 'patients' && <PatientsTab s={s} />}
           {s.activeTab === 'notes' && (
-            <motion.div key="notes" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full">
+            <motion.div key="notes" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 flex flex-col overflow-hidden">
               <NotesHistory onToast={s.showToast} />
             </motion.div>
           )}
