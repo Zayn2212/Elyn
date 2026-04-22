@@ -49,6 +49,11 @@ export default function PatientsTab({ s }: { s: CommandCenterState }) {
               }
               onViewFull={() => s.setPatientDetailOpen(true)}
               onToast={s.showToast}
+              onPatientUpdate={(updated) => {
+                const merged = { ...s.selectedPatient!, ...updated };
+                s.setSelectedPatient(merged);
+                s.setPatients(prev => prev.map(p => p.id === merged.id ? merged : p));
+              }}
             />
           ) : (
             <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-2">
