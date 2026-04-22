@@ -9,11 +9,22 @@ import CommandCenterModals from './CommandCenterModals';
 import BottomNav from './BottomNav';
 import NotesHistory from '@/components/notes/NotesHistory';
 import ComplianceBanner from './ComplianceBanner';
+import NextPatientSuggestion from '@/components/patients/NextPatientSuggestion';
 import { Toast } from '@/components/elyn/index';
 
 export default function CommandCenter() {
   const s = useCommandCenter();
   const { showTimeoutWarning, updateActivity } = useSessionSecurity();
+
+  const handleGoToSuggestedPatient = () => {
+    if (!s.nextPatientSuggestion) return;
+    const patient = s.filteredPatients.find(p => p.id === s.nextPatientSuggestion!.patientId);
+    if (patient) {
+      s.handlePatientSelect(patient);
+      s.setActiveTab('patients');
+    }
+    s.setNextPatientSuggestion(null);
+  };
 
   return (
     <div className="h-screen bg-background overflow-hidden flex flex-col pb-16 md:pb-0" style={{ paddingTop: 'var(--safe-top, env(safe-area-inset-top, 0px))' }}>
@@ -41,6 +52,18 @@ export default function CommandCenter() {
 
       <BottomNav activeTab={s.activeTab} onTabChange={s.setActiveTab} onRecordPress={s.handleRecordPress} isRecording={s.speech.isRecording} />
       <CommandCenterModals s={s} />
+
+      {s.nextPatientSuggestion && (
+        <NextPatientSuggestion
+          isVisible={s.nextPatientSuggestion.isVisible}
+          patientName={s.nextPatientSuggestion.patientName}
+          acuityScore={s.nextPatientSuggestion.acuityScore}
+          acuityLevel={s.nextPatientSuggestion.acuityLevel}
+          topSignal={s.nextPatientSuggestion.topSignal}
+          onGoToPatient={handleGoToSuggestedPatient}
+          onDismiss={() => s.setNextPatientSuggestion(null)}
+        />
+      )}
 
       <AnimatePresence>
         {s.toast && <Toast message={s.toast} />}

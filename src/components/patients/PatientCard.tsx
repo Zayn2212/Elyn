@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
-import { MapPin, Stethoscope, ChevronRight, Building2, Circle, PlayCircle, CheckCircle, FileSignature, LogOut, Mic } from 'lucide-react';
+import { MapPin, ChevronRight, Building2, Circle, PlayCircle, CheckCircle, FileSignature, LogOut, Mic, DollarSign } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { type AcuityLevel, getAcuityRingColor } from '@/lib/acuityEngine';
 
 export type PatientStatus = 'not_seen' | 'in_progress' | 'seen' | 'signed' | 'discharged';
 
@@ -27,6 +28,11 @@ export interface Patient {
   zip?: string | null;
   phone?: string | null;
   payer_id?: string | null;
+  acuity_score?: number | null;
+  acuity_level?: AcuityLevel | null;
+  acuity_signals?: string[] | null;
+  last_action_at?: string | null;
+  pending_rvu?: number;
 }
 
 interface PatientCardProps {
@@ -44,49 +50,33 @@ const statusConfig: Record<PatientStatus, {
   className: string;
   next: PatientStatus;
 }> = {
-  not_seen: {
-    label: 'Not Seen',
-    icon: Circle,
-    className: 'bg-muted text-muted-foreground',
-    next: 'in_progress'
-  },
-  in_progress: {
-    label: 'In Progress',
-    icon: PlayCircle,
-    className: 'bg-warning/20 text-warning',
-    next: 'seen'
-  },
-  seen: {
-    label: 'Seen',
-    icon: CheckCircle,
-    className: 'bg-success/20 text-success',
-    next: 'signed'
-  },
-  signed: {
-    label: 'Signed',
-    icon: FileSignature,
-    className: 'bg-primary/20 text-primary',
-    next: 'not_seen'
-  },
-  discharged: {
-    label: 'Discharged',
-    icon: LogOut,
-    className: 'bg-gray-500/20 text-gray-500',
-    next: 'discharged'
-  },
+  not_seen: { label: 'Not Seen', icon: Circle, className: 'bg-muted text-muted-foreground', next: 'in_progress' },
+  in_progress: { label: 'In Progress', icon: PlayCircle, className: 'bg-warning/20 text-warning', next: 'seen' },
+  seen: { label: 'Seen', icon: CheckCircle, className: 'bg-success/20 text-success', next: 'signed' },
+  signed: { label: 'Signed', icon: FileSignature, className: 'bg-primary/20 text-primary', next: 'not_seen' },
+  discharged: { label: 'Discharged', icon: LogOut, className: 'bg-gray-500/20 text-gray-500', next: 'discharged' },
 };
+
+function formatTimeAgo(dateStr?: string | null): string | null {
+  if (!dateStr) return null;
+  const hours = (Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60);
+  if (hours < 1) return `${Math.round(hours * 60)}m ago`;
+  if (hours < 24) return `${Math.round(hours)}h ago`;
+  return `${Math.round(hours / 24)}d ago`;
+}
 
 export default function PatientCard({ patient, isSelected, onClick, onRecordClick, onStatusChange, facilityName }: PatientCardProps) {
   const status = patient.status || 'not_seen';
   const statusInfo = statusConfig[status];
   const StatusIcon = statusInfo.icon;
-  
+  const acuityLevel = patient.acuity_level || patient.acuity || null;
+  const acuityScore = patient.acuity_score;
+  const timeAgo = formatTimeAgo(patient.last_action_at);
+
   const handleStatusClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (status === 'discharged') return;
-    if (onStatusChange) {
-      onStatusChange(patient.id, statusInfo.next);
-    }
+    if (onStatusChange) onStatusChange(patient.id, statusInfo.next);
   };
 
   return (
@@ -99,24 +89,37 @@ export default function PatientCard({ patient, isSelected, onClick, onRecordClic
       )}
     >
       <div className="flex items-center gap-3">
-        {/* Status indicator dot */}
+        {/* Acuity-aware status indicator */}
         <button
           onClick={handleStatusClick}
           className={cn(
             'flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95',
-            statusInfo.className
+            statusInfo.className,
+            acuityLevel && acuityLevel !== 'low' && `ring-2 shadow-md ${getAcuityRingColor(acuityLevel as AcuityLevel)}`
           )}
-          title={`${statusInfo.label} — tap to change`}
+          title={`${statusInfo.label}${acuityScore != null ? ` • Score: ${acuityScore}` : ''} — tap to change`}
         >
           <StatusIcon className="w-4 h-4" />
         </button>
 
-        {/* Patient Info — compact */}
+        {/* Patient Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <h3 className="font-semibold text-foreground truncate text-sm">
               {patient.name}
             </h3>
+            {/* Acuity score badge */}
+            {acuityScore != null && acuityScore > 0 && (
+              <span className={cn(
+                'flex-shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-md border',
+                acuityLevel === 'critical' ? 'bg-destructive/10 text-destructive border-destructive/30' :
+                acuityLevel === 'high' ? 'bg-warning/10 text-warning border-warning/30' :
+                acuityLevel === 'moderate' ? 'bg-primary/10 text-primary border-primary/30' :
+                'bg-success/10 text-success border-success/30'
+              )}>
+                {acuityScore}
+              </span>
+            )}
             {patient.room && (
               <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground flex-shrink-0">
                 <MapPin className="w-2.5 h-2.5" />
@@ -134,10 +137,18 @@ export default function PatientCard({ patient, isSelected, onClick, onRecordClic
                 {facilityName}
               </span>
             )}
+            {timeAgo && (
+              <span className="flex-shrink-0 text-muted-foreground/70">{timeAgo}</span>
+            )}
+            {patient.pending_rvu != null && patient.pending_rvu <= 0 && status !== 'discharged' && status !== 'signed' && (
+              <span className="flex items-center gap-0.5 flex-shrink-0 text-warning">
+                <DollarSign className="w-2.5 h-2.5" />
+              </span>
+            )}
           </div>
         </div>
-        
-        {/* Record button — prominent, labeled */}
+
+        {/* Record button */}
         {onRecordClick && status !== 'discharged' && (
           <button
             onClick={(e) => { e.stopPropagation(); onRecordClick(); }}
@@ -147,10 +158,10 @@ export default function PatientCard({ patient, isSelected, onClick, onRecordClic
             <span className="hidden sm:inline">Dictate</span>
           </button>
         )}
-        
+
         <ChevronRight className="w-4 h-4 text-muted-foreground/30 flex-shrink-0" />
       </div>
-      
+
       {/* Allergies */}
       {patient.allergies && patient.allergies.length > 0 && (
         <div className="mt-2 pt-2 border-t border-border ml-11">

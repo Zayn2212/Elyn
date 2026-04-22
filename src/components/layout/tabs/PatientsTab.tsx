@@ -7,6 +7,7 @@ import elynLogo from "@/assets/elyn-logo.png";
 import { cn } from "@/lib/utils";
 import type { CommandCenterState } from "@/hooks/useCommandCenter";
 import { PatientListSkeleton } from "./TabSkeletons";
+import OnboardingChecklist from "@/components/onboarding/OnboardingChecklist";
 
 export default function PatientsTab({ s }: { s: CommandCenterState }) {
   if (s.isLoading) return <PatientListSkeleton />;
@@ -21,16 +22,21 @@ export default function PatientsTab({ s }: { s: CommandCenterState }) {
     >
       {/* Split-pane */}
       <div className="flex-1 min-h-0 md:grid md:grid-cols-2">
-        <div className="h-full md:border-r md:border-border flex flex-col min-h-0">
-          <PatientList
-            patients={s.filteredPatients}
-            onPatientSelect={s.handlePatientSelect}
-            onRecordPatient={s.handleRecordPatient}
-            onStatusChange={s.handleStatusChange}
-            selectedPatientId={s.selectedPatient?.id}
-            facilities={s.facilities}
-            onEMRImport={() => s.setIsEMRImportOpen(true)}
-          />
+        <div className="h-full md:border-r md:border-border flex flex-col">
+          <div className="flex-1 min-h-0 overflow-y-auto">
+            <div className="px-3 sm:px-4 pt-3">
+              <OnboardingChecklist />
+            </div>
+            <PatientList
+              patients={s.filteredPatients}
+              onPatientSelect={s.handlePatientSelect}
+              onRecordPatient={s.handleRecordPatient}
+              onStatusChange={s.handleStatusChange}
+              selectedPatientId={s.selectedPatient?.id}
+              facilities={s.facilities}
+              onEMRImport={() => s.setIsEMRImportOpen(true)}
+            />
+          </div>
         </div>
 
         <div className="hidden md:block overflow-hidden">
@@ -60,6 +66,7 @@ export default function PatientsTab({ s }: { s: CommandCenterState }) {
         <RoundingModeToggle
           isActive={s.isRoundingMode}
           onToggle={() => s.setIsRoundingMode(false)}
+          onClose={() => s.setIsRoundingMode(false)}
           patients={s.filteredPatients}
           onStatusChange={s.handleStatusChange}
           onPatientSelect={s.handlePatientSelect}
@@ -83,20 +90,18 @@ export default function PatientsTab({ s }: { s: CommandCenterState }) {
                     s.setIsRoundingMode(true);
                     s.setIsFabMenuOpen(false);
                   }}
-                  className="flex items-center justify-center w-14 md:w-auto md:px-4 h-14 rounded-full bg-success text-success-foreground shadow-lg text-sm font-medium"
+                  className="flex items-center gap-2 h-10 pl-3 pr-4 rounded-full bg-success text-success-foreground shadow-lg text-sm font-medium"
                 >
-                  <Stethoscope className="w-6 h-6" />{" "}
-                  <span className="hidden md:inline ml-2">Start Rounds</span>
+                  <Stethoscope className="w-4 h-4" /> Start Rounds
                 </button>
                 <button
                   onClick={() => {
                     s.setIsUnifiedImportOpen(true);
                     s.setIsFabMenuOpen(false);
                   }}
-                  className="flex items-center justify-center w-14 md:w-auto md:px-4 h-14 rounded-full bg-primary text-primary-foreground shadow-lg text-sm font-medium"
+                  className="flex items-center gap-2 h-10 pl-3 pr-4 rounded-full bg-primary text-primary-foreground shadow-lg text-sm font-medium"
                 >
-                  <UserPlus className="w-6 h-6" />{" "}
-                  <span className="hidden md:inline ml-2">Import Patient</span>
+                  <UserPlus className="w-4 h-4" /> Import Patient
                 </button>
               </motion.div>
             )}
@@ -104,19 +109,19 @@ export default function PatientsTab({ s }: { s: CommandCenterState }) {
           <button
             onClick={() => s.setIsFabMenuOpen(!s.isFabMenuOpen)}
             className={cn(
-              "w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-200",
+              "w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-200",
               s.isFabMenuOpen
                 ? "bg-muted rotate-45"
                 : "bg-card border border-border",
             )}
           >
             {s.isFabMenuOpen ? (
-              <Plus className="w-7 h-7 text-foreground" />
+              <Plus className="w-6 h-6 text-foreground" />
             ) : (
               <img
                 src={elynLogo}
                 alt="Menu"
-                className="w-10 h-10 object-contain mix-blend-multiply dark:mix-blend-screen"
+                className="w-8 h-8 object-contain mix-blend-multiply dark:mix-blend-screen"
               />
             )}
           </button>
