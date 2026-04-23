@@ -44,8 +44,8 @@ function formatDate(iso: string) {
   );
 }
 
-function shortAgent(ua: string | null) {
-  if (!ua) return "—";
+function shortAgent(ua: string | null): string | null {
+  if (!ua) return null;
   if (/iPhone|iPad/.test(ua)) return "iOS";
   if (/Android/.test(ua)) return "Android";
   if (/Chrome/.test(ua)) return "Chrome";
@@ -173,7 +173,9 @@ export default function AdminAuditLog() {
                         {log.ip_address && (
                           <span className="ml-2 opacity-60">· {String(log.ip_address)}</span>
                         )}
-                        <span className="ml-2 opacity-60">· {shortAgent(log.user_agent)}</span>
+                        {shortAgent(log.user_agent) && (
+                          <span className="ml-2 opacity-60">· {shortAgent(log.user_agent)}</span>
+                        )}
                       </p>
                     </div>
                     {hasDetail && (
