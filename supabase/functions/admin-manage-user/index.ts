@@ -11,6 +11,7 @@ const corsHeaders = {
 
 type Action =
   | "list_users"     // fetch emails + ban status for a set of user IDs
+  | "invite"         // invite a new user by email
   | "promote"        // grant admin role
   | "demote"         // revoke admin role
   | "ban"            // ban account (100 years)
@@ -21,7 +22,11 @@ type Action =
 interface RequestBody {
   action: Action;
   target_user_id?: string;
-  user_ids?: string[]; // used by list_users
+  user_ids?: string[];   // used by list_users
+  email?: string;                    // used by invite
+  full_name?: string;                // used by invite (pre-fills profile)
+  specialty?: string;                // used by invite (pre-fills profile)
+  role?: "provider" | "admin";      // used by invite
 }
 
 function json(body: unknown, status = 200) {
@@ -75,6 +80,41 @@ serve(async (req) => {
     }
 
     switch (action) {
+      case "invite": {
+        const { email, full_name, specialty } = body;
+        if (!email) return json({ error: "Missing email" }, 400);
+
+        // inviteUserByEmail creates the auth.users row and sends the invite email.
+        // The user clicks the link, lands on /accept-invite, and sets their password.
+        const { data: inviteData, error: inviteError } =
+          await adminClient.auth.admin.inviteUserByEmail(email, {
+            redirectTo: `${req.headers.get("origin") ?? Deno.env.get("SITE_URL")}/accept-invite`,
+            data: { full_name: full_name ?? null, specialty: specialty ?? null },
+          });
+
+        if (inviteError) return json({ error: inviteError.message }, 500);
+
+        if (inviteData.user) {
+          const updates: Record<string, string> = {};
+          if (full_name) updates.full_name = full_name;
+          if (specialty) updates.specialty = specialty;
+
+          // Pre-fill the profile row that handle_new_user() trigger already created
+          if (Object.keys(updates).length) {
+            await adminClient.from("profiles").update(updates).eq("user_id", inviteData.user.id);
+          }
+
+          // Grant admin role if requested
+          if (body.role === "admin") {
+            await adminClient
+              .from("user_roles")
+              .upsert({ user_id: inviteData.user.id, role: "admin" }, { onConflict: "user_id,role" });
+          }
+        }
+
+        return json({ success: true, message: "Invitation sent" });
+      }
+
       case "list_users": {
         if (!user_ids?.length) return json({ users: [] });
         // Fetch up to 100 users by ID via admin API — returns email + ban_duration

@@ -34,6 +34,7 @@ import AdminHome from "./pages/admin/AdminHome";
 import AdminProviders from "./pages/admin/AdminProviders";
 import AdminAuditLog from "./pages/admin/AdminAuditLog";
 import AdminSettings from "./pages/admin/AdminSettings";
+import AcceptInvite from "./pages/AcceptInvite";
 const queryClient = new QueryClient();
 
 const LoadingScreen = () => (
@@ -138,6 +139,7 @@ const AppRoutes = () => {
         }
       />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/accept-invite" element={<AcceptInvite />} />
       <Route path="/terms" element={<TermsOfService />} />
       <Route path="/privacy" element={<PrivacyPolicy />} />
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
