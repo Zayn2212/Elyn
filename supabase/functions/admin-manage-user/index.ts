@@ -12,6 +12,7 @@ const corsHeaders = {
 type Action =
   | "list_users"     // fetch emails + ban status for a set of user IDs
   | "invite"         // invite a new user by email
+  | "resend_invite"  // resend invite email to a pending user
   | "promote"        // grant admin role
   | "demote"         // revoke admin role
   | "ban"            // ban account (100 years)
@@ -117,7 +118,6 @@ serve(async (req) => {
 
       case "list_users": {
         if (!user_ids?.length) return json({ users: [] });
-        // Fetch up to 100 users by ID via admin API — returns email + ban_duration
         const results = await Promise.all(
           user_ids.map((id) => adminClient.auth.admin.getUserById(id))
         );
@@ -130,9 +130,24 @@ serve(async (req) => {
               id: u.id,
               email: u.email ?? null,
               is_banned: u.banned_until ? new Date(u.banned_until) > new Date() : false,
+              // invited_at is set, confirmed_at is null = invite still pending
+              invite_pending: !!u.invited_at && !u.confirmed_at,
             };
           });
         return json({ users });
+      }
+
+      case "resend_invite": {
+        const { data: { user: target }, error: fetchError } =
+          await adminClient.auth.admin.getUserById(target_user_id!);
+        if (fetchError || !target?.email) return json({ error: "User not found" }, 404);
+        if (target.confirmed_at) return json({ error: "User has already accepted their invitation" }, 400);
+
+        const { error } = await adminClient.auth.admin.inviteUserByEmail(target.email, {
+          redirectTo: `${req.headers.get("origin") ?? Deno.env.get("SITE_URL")}/accept-invite`,
+        });
+        if (error) return json({ error: error.message }, 500);
+        return json({ success: true, message: "Invitation resent" });
       }
       case "promote": {
         // Insert admin role — ignore if already exists

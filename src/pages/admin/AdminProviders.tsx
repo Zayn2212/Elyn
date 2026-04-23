@@ -17,6 +17,7 @@ import {
   Users,
   UserPlus,
   Mail,
+  MailCheck,
   User,
   Stethoscope,
 } from "lucide-react";
@@ -38,10 +39,11 @@ interface Provider {
   created_at: string;
   roles: string[];
   is_banned: boolean;
+  invite_pending: boolean;
   email: string | null;
 }
 
-type Action = "promote" | "demote" | "ban" | "unban" | "delete" | "reset_password";
+type Action = "promote" | "demote" | "ban" | "unban" | "delete" | "reset_password" | "resend_invite";
 
 interface ConfirmState {
   action: Action;
@@ -237,14 +239,17 @@ function ActionMenu({
   const isAdmin = provider.roles.includes("admin");
 
   const items: { label: string; icon: React.ElementType; action: Action; danger?: boolean }[] = [
+    ...(provider.invite_pending
+      ? [{ label: "Resend Invite", icon: MailCheck, action: "resend_invite" as Action }]
+      : []),
     isAdmin
-      ? { label: "Remove Admin", icon: ShieldOff, action: "demote", danger: true }
-      : { label: "Make Admin", icon: ShieldCheck, action: "promote" },
+      ? { label: "Remove Admin", icon: ShieldOff, action: "demote" as Action, danger: true }
+      : { label: "Make Admin", icon: ShieldCheck, action: "promote" as Action },
     provider.is_banned
-      ? { label: "Unban Account", icon: UserCheck, action: "unban" }
-      : { label: "Ban Account", icon: Ban, action: "ban", danger: true },
-    { label: "Send Password Reset", icon: KeyRound, action: "reset_password" },
-    { label: "Delete Account", icon: Trash2, action: "delete", danger: true },
+      ? { label: "Unban Account", icon: UserCheck, action: "unban" as Action }
+      : { label: "Ban Account", icon: Ban, action: "ban" as Action, danger: true },
+    { label: "Send Password Reset", icon: KeyRound, action: "reset_password" as Action },
+    { label: "Delete Account", icon: Trash2, action: "delete" as Action, danger: true },
   ];
 
   return (
@@ -290,6 +295,7 @@ const ACTION_META: Record<Action, { title: string; body: string; confirmLabel: s
   unban:          { title: "Unban Account",         body: "The user will be able to sign in again.",                                  confirmLabel: "Unban",         danger: false },
   delete:         { title: "Delete Account",        body: "All data (patients, notes, billing) will be permanently deleted. This cannot be undone.", confirmLabel: "Delete", danger: true },
   reset_password: { title: "Send Password Reset",  body: "A password reset link will be emailed to this user.",                      confirmLabel: "Send Email",    danger: false },
+  resend_invite:  { title: "Resend Invitation",    body: "A new invite email will be sent. The previous link will be invalidated.",   confirmLabel: "Resend",        danger: false },
 };
 
 function ConfirmDialog({
@@ -404,9 +410,9 @@ export default function AdminProviders() {
       roleMap[user_id].push(role);
     });
 
-    const authMap: Record<string, { email: string | null; is_banned: boolean }> = {};
-    ((authResult.data?.users ?? []) as { id: string; email: string | null; is_banned: boolean }[])
-      .forEach((u) => { authMap[u.id] = { email: u.email, is_banned: u.is_banned }; });
+    const authMap: Record<string, { email: string | null; is_banned: boolean; invite_pending: boolean }> = {};
+    ((authResult.data?.users ?? []) as { id: string; email: string | null; is_banned: boolean; invite_pending: boolean }[])
+      .forEach((u) => { authMap[u.id] = { email: u.email, is_banned: u.is_banned, invite_pending: u.invite_pending }; });
 
     setProviders(
       profileData.map((p) => ({
@@ -418,6 +424,7 @@ export default function AdminProviders() {
         email: authMap[p.user_id]?.email ?? null,
         roles: roleMap[p.user_id] ?? ["provider"],
         is_banned: authMap[p.user_id]?.is_banned ?? false,
+        invite_pending: authMap[p.user_id]?.invite_pending ?? false,
       }))
     );
     setTotal(count ?? 0);
@@ -533,6 +540,11 @@ export default function AdminProviders() {
                       {provider.full_name ?? <span className="text-muted-foreground italic">No name</span>}
                     </p>
                     {roleBadge(provider.roles, provider.is_banned)}
+                    {provider.invite_pending && (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-muted text-muted-foreground border border-border">
+                        Invite Pending
+                      </span>
+                    )}
                   </div>
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {provider.email ?? "—"}
