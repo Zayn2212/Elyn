@@ -29,31 +29,30 @@ import ProfileSettings from "./pages/ProfileSettings";
 import ResetPassword from "./pages/ResetPassword";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
-import AuditLog from "./pages/AuditLog";
 import NotFound from "./pages/NotFound";
+import AdminHome from "./pages/admin/AdminHome";
+import AdminProviders from "./pages/admin/AdminProviders";
+import AdminAuditLog from "./pages/admin/AdminAuditLog";
+import AdminSettings from "./pages/admin/AdminSettings";
 const queryClient = new QueryClient();
 
-// Protected Route wrapper
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center animate-pulse">
-            <span className="text-3xl font-bold text-primary-foreground">
-              E
-            </span>
-          </div>
-        </div>
+const LoadingScreen = () => (
+  <div className="min-h-screen bg-background flex items-center justify-center">
+    <div className="flex flex-col items-center gap-4">
+      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center animate-pulse">
+        <span className="text-3xl font-bold text-primary-foreground">E</span>
       </div>
-    );
-  }
+    </div>
+  </div>
+);
 
-  if (!user) {
-    return <Navigate to="/auth" replace />;
-  }
+// Protected Route wrapper — redirects admins to /admin automatically
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading, isAdmin } = useAuth();
+
+  if (loading) return <LoadingScreen />;
+  if (!user) return <Navigate to="/auth" replace />;
+  if (isAdmin) return <Navigate to="/admin" replace />;
 
   return (
     <div className="min-h-screen bg-background isolate overflow-x-hidden">
@@ -91,6 +90,38 @@ const AppRoutes = () => {
         }
       />
       <Route
+        path="/admin"
+        element={
+          <AdminRoute>
+            <AdminHome />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/providers"
+        element={
+          <AdminRoute>
+            <AdminProviders />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/audit-log"
+        element={
+          <AdminRoute>
+            <AdminAuditLog />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/settings"
+        element={
+          <AdminRoute>
+            <AdminSettings />
+          </AdminRoute>
+        }
+      />
+      <Route
         path="/practice-manager"
         element={
           <ProtectedRoute>
@@ -109,7 +140,6 @@ const AppRoutes = () => {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/terms" element={<TermsOfService />} />
       <Route path="/privacy" element={<PrivacyPolicy />} />
-      <Route path="/audit-log" element={<AuditLog />} />
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
       <Route path="*" element={<NotFound />} />
     </Routes>
