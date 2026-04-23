@@ -47,7 +47,7 @@ export default function FeedbackWidget() {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setOpen(true)}
-        className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-40 flex items-center gap-2 px-3.5 py-2.5 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 text-sm font-medium hover:shadow-xl transition"
+        className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-30 flex items-center gap-2 px-3.5 py-2.5 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 text-sm font-medium hover:shadow-xl transition"
         aria-label="Send feedback"
       >
         <MessageSquarePlus className="w-4 h-4" />

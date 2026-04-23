@@ -10,6 +10,7 @@ import BottomNav from './BottomNav';
 import NotesHistory from '@/components/notes/NotesHistory';
 import ComplianceBanner from './ComplianceBanner';
 import NextPatientSuggestion from '@/components/patients/NextPatientSuggestion';
+import FeedbackWidget from '@/components/feedback/FeedbackWidget';
 import { Toast } from '@/components/elyn/index';
 
 export default function CommandCenter() {
@@ -52,6 +53,7 @@ export default function CommandCenter() {
 
       <BottomNav activeTab={s.activeTab} onTabChange={s.setActiveTab} onRecordPress={s.handleRecordPress} isRecording={s.speech.isRecording} />
       <CommandCenterModals s={s} />
+      <FeedbackWidget />
 
       {s.nextPatientSuggestion && (
         <NextPatientSuggestion

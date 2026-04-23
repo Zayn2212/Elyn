@@ -56,7 +56,9 @@ export default function CommandCenterHeader({ s }: { s: CommandCenterState }) {
   const critical = activePatients.filter((p) =>
     p.diagnosis?.toLowerCase().includes("critical"),
   ).length;
-  const needsAttention = activePatients.filter((p) => (p.acuity_score ?? 0) >= 70).length;
+  const needsAttention = activePatients.filter(
+    (p) => (p.acuity_score ?? 0) >= 70,
+  ).length;
   const completed = seen + signed;
   const completedPercent =
     total > 0 ? Math.round((completed / total) * 100) : 0;
@@ -70,10 +72,10 @@ export default function CommandCenterHeader({ s }: { s: CommandCenterState }) {
             <img
               src={elynLogo}
               alt="elyn"
-              className="w-10 h-10 object-contain mix-blend-multiply dark:mix-blend-screen"
+              className="w-14 h-14 sm:w-16 sm:h-16 object-contain mix-blend-multiply dark:mix-blend-screen"
             />
             <div className="hidden sm:block">
-              <h1 className="text-lg font-medium gradient-text">elyn™</h1>
+              <h1 className="text-2xl font-medium gradient-text">elyn™</h1>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
                 Dictate · Document · Bill
               </p>
@@ -173,7 +175,9 @@ export default function CommandCenterHeader({ s }: { s: CommandCenterState }) {
               <div className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-destructive/10 border border-destructive/20 text-[13px]">
                 <AlertTriangle className="w-3 h-3 text-destructive animate-pulse" />
                 <span className="text-destructive/80">Needs Attention</span>
-                <span className="font-semibold text-destructive">{needsAttention}</span>
+                <span className="font-semibold text-destructive">
+                  {needsAttention}
+                </span>
               </div>
             )}
             {critical > 0 && (
@@ -219,7 +223,9 @@ export default function CommandCenterHeader({ s }: { s: CommandCenterState }) {
           {needsAttention > 0 && (
             <div className="flex items-center gap-1 text-[11px] whitespace-nowrap">
               <AlertTriangle className="w-3 h-3 text-destructive animate-pulse" />
-              <span className="text-destructive font-semibold">⚠ {needsAttention}</span>
+              <span className="text-destructive font-semibold">
+                ⚠ {needsAttention}
+              </span>
             </div>
           )}
           {critical > 0 && (

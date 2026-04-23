@@ -203,7 +203,6 @@ const App = () => (
             <SyncProvider>
               <FacilityProvider>
                 <AppRoutes />
-                <FeedbackWidget />
               </FacilityProvider>
             </SyncProvider>
           </AuthProvider>
