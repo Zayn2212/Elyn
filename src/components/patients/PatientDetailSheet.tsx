@@ -25,6 +25,7 @@ import {
   Trash2,
   Building2,
   LogOut,
+  Activity,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -57,6 +58,7 @@ import {
 import { MarkdownDisplay } from "@/components/ui/markdown-display";
 import { NoteItemsSkeleton } from "../layout/tabs/TabSkeletons";
 import { PhiExportDialog } from "@/components/ui/phi-export-dialog";
+import { type AcuityLevel, getAcuityColor, getAcuityBgColor } from "@/lib/acuityEngine";
 
 interface ClinicalNote {
   id: string;
@@ -123,6 +125,7 @@ export default function PatientDetailSheet({
   const [isDeleting, setIsDeleting] = useState(false);
   const [pendingExportNote, setPendingExportNote] = useState<ClinicalNote | null>(null);
   const [pendingCopyNote, setPendingCopyNote] = useState<ClinicalNote | null>(null);
+  const [showAcuity, setShowAcuity] = useState(false);
 
   // Patient edit state
   const [isEditingPatient, setIsEditingPatient] = useState(false);
@@ -300,6 +303,39 @@ export default function PatientDetailSheet({
   };
 
   const totalRvu = billingRecords.reduce((sum, b) => sum + (b.rvu || 0), 0);
+
+  const handleOverrideAcuity = async (newLevel: AcuityLevel) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const acuityLevel = patient.acuity_level || patient.acuity || null;
+      const acuityScore = patient.acuity_score;
+
+      await supabase.from('acuity_feedback' as any).insert({
+        user_id: user.id,
+        patient_id: patient.id,
+        computed_score: acuityScore || 0,
+        computed_level: acuityLevel || 'low',
+        physician_override: newLevel,
+        override_reason: 'Manual override',
+        patient_context: { diagnosis: patient.diagnosis, status: patient.status },
+      });
+
+      const newScore = newLevel === 'critical' ? 90 : newLevel === 'high' ? 70 : newLevel === 'moderate' ? 40 : 10;
+
+      await supabase.from('patients').update({
+        acuity_level: newLevel as any,
+        acuity_score: newScore as any,
+      }).eq('id', patient.id);
+
+      onPatientUpdate?.({ ...patient, acuity_level: newLevel, acuity_score: newScore });
+      onToast(`Acuity updated to ${newLevel}`);
+    } catch (e) {
+      console.error('Error overriding acuity:', e);
+      onToast('Error updating acuity');
+    }
+  };
 
   const handleStartEditPatient = () => {
     setEditedPatient({
@@ -904,6 +940,74 @@ export default function PatientDetailSheet({
                             </p>
                           </div>
                         )}
+
+                        {/* Acuity Score — compact collapsible */}
+                        {(() => {
+                          const acuityLevel = patient.acuity_level || patient.acuity || null;
+                          const acuityScore = patient.acuity_score;
+                          const signals: string[] = patient.acuity_signals || [];
+                          if (!acuityScore || acuityScore <= 0) return null;
+                          return (
+                            <div className={cn("mt-2 rounded-xl border overflow-hidden", getAcuityBgColor(acuityLevel as AcuityLevel))}>
+                              <button
+                                onClick={() => setShowAcuity(!showAcuity)}
+                                className="w-full flex items-center justify-between px-3 py-2"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <Activity className={cn("w-3.5 h-3.5", getAcuityColor(acuityLevel as AcuityLevel))} />
+                                  <span className={cn("text-xs font-semibold capitalize px-1.5 py-0.5 rounded-full",
+                                    acuityLevel === "critical" ? "bg-destructive/20 text-destructive" :
+                                    acuityLevel === "high" ? "bg-warning/20 text-warning" :
+                                    acuityLevel === "moderate" ? "bg-primary/20 text-primary" :
+                                    "bg-success/20 text-success"
+                                  )}>
+                                    {acuityLevel}
+                                  </span>
+                                  {signals.length > 0 && (
+                                    <span className="text-[10px] text-muted-foreground">{signals.length} signal{signals.length !== 1 ? "s" : ""}</span>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                  <span className={cn("text-base font-bold", getAcuityColor(acuityLevel as AcuityLevel))}>{acuityScore}</span>
+                                  {showAcuity ? <ChevronUp className="w-3 h-3 text-muted-foreground" /> : <ChevronDown className="w-3 h-3 text-muted-foreground" />}
+                                </div>
+                              </button>
+                              {showAcuity && (
+                                <div className="px-3 pb-2 border-t border-border/20">
+                                  {signals.length > 0 && (
+                                    <ul className="mt-1.5 space-y-1 mb-2">
+                                      {signals.map((signal, i) => (
+                                        <li key={i} className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+                                          <span className="w-1 h-1 rounded-full bg-muted-foreground/50 shrink-0" />
+                                          {signal}
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  )}
+                                  <div className="flex items-center gap-1.5 pt-2 border-t border-border/20">
+                                    <span className="text-[10px] text-muted-foreground mr-0.5">Override:</span>
+                                    {(["critical", "high", "moderate", "low"] as AcuityLevel[]).map((level) => (
+                                      <button
+                                        key={level}
+                                        onClick={() => handleOverrideAcuity(level)}
+                                        className={cn(
+                                          "text-[10px] px-2 py-0.5 rounded-full border transition-colors capitalize",
+                                          level === acuityLevel ? "font-bold" : "opacity-60 hover:opacity-100",
+                                          level === "critical" ? "border-destructive/30 text-destructive" :
+                                          level === "high" ? "border-warning/30 text-warning" :
+                                          level === "moderate" ? "border-primary/30 text-primary" :
+                                          "border-success/30 text-success"
+                                        )}
+                                      >
+                                        {level}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
 
                         {/* Quick Stats */}
                         <div className="mt-3 grid grid-cols-3 gap-2">
