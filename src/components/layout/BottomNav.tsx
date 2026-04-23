@@ -42,6 +42,7 @@ interface BottomNavProps {
   onTabChange: (tab: string) => void;
   onRecordPress: () => void;
   isRecording?: boolean;
+  isFeedbackOpen?: boolean;
 }
 
 const tabs = [
@@ -57,10 +58,11 @@ export default function BottomNav({
   onTabChange,
   onRecordPress,
   isRecording,
+  isFeedbackOpen,
 }: BottomNavProps) {
   const isKeyboardVisible = useIsKeyboardVisible();
 
-  if (isKeyboardVisible) return null;
+  if (isKeyboardVisible || isFeedbackOpen) return null;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bottom-nav md:hidden">

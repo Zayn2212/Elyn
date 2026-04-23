@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useCommandCenter } from '@/hooks/useCommandCenter';
 import { useSessionSecurity } from '@/hooks/useSessionSecurity';
@@ -16,6 +17,7 @@ import { Toast } from '@/components/elyn/index';
 export default function CommandCenter() {
   const s = useCommandCenter();
   const { showTimeoutWarning, updateActivity } = useSessionSecurity();
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   const handleGoToSuggestedPatient = () => {
     if (!s.nextPatientSuggestion) return;
@@ -40,7 +42,7 @@ export default function CommandCenter() {
 
       <main className="flex-1 min-h-0 relative overflow-hidden">
         <AnimatePresence mode="wait">
-          {s.activeTab === 'patients' && <PatientsTab s={s} />}
+          {s.activeTab === 'patients' && <PatientsTab s={s} onFeedbackOpenChange={setFeedbackOpen} />}
           {s.activeTab === 'notes' && (
             <motion.div key="notes" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 flex flex-col overflow-hidden">
               <NotesHistory onToast={s.showToast} />
@@ -51,7 +53,7 @@ export default function CommandCenter() {
         </AnimatePresence>
       </main>
 
-      <BottomNav activeTab={s.activeTab} onTabChange={s.setActiveTab} onRecordPress={s.handleRecordPress} isRecording={s.speech.isRecording} />
+      <BottomNav activeTab={s.activeTab} onTabChange={s.setActiveTab} onRecordPress={s.handleRecordPress} isRecording={s.speech.isRecording} isFeedbackOpen={feedbackOpen} />
       <CommandCenterModals s={s} />
       <FeedbackWidget />
 

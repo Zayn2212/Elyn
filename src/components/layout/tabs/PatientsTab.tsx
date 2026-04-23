@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import PatientList from "@/components/patients/PatientList";
 import PatientDetailPanel from "@/components/patients/PatientDetailPanel";
@@ -8,8 +9,15 @@ import { cn } from "@/lib/utils";
 import type { CommandCenterState } from "@/hooks/useCommandCenter";
 import { PatientListSkeleton } from "./TabSkeletons";
 import OnboardingChecklist from "@/components/onboarding/OnboardingChecklist";
+import {
+  FeedbackFabButton,
+  FeedbackWidgetControlled,
+  useFeedbackState,
+} from "@/components/feedback/FeedbackWidget";
 
-export default function PatientsTab({ s }: { s: CommandCenterState }) {
+export default function PatientsTab({ s, onFeedbackOpenChange }: { s: CommandCenterState; onFeedbackOpenChange: (open: boolean) => void }) {
+  const feedback = useFeedbackState();
+  useEffect(() => { onFeedbackOpenChange(feedback.open); }, [feedback.open]);
   if (s.isLoading) return <PatientListSkeleton />;
 
   return (
@@ -52,7 +60,9 @@ export default function PatientsTab({ s }: { s: CommandCenterState }) {
               onPatientUpdate={(updated) => {
                 const merged = { ...s.selectedPatient!, ...updated };
                 s.setSelectedPatient(merged);
-                s.setPatients(prev => prev.map(p => p.id === merged.id ? merged : p));
+                s.setPatients((prev) =>
+                  prev.map((p) => (p.id === merged.id ? merged : p)),
+                );
               }}
             />
           ) : (
@@ -80,7 +90,7 @@ export default function PatientsTab({ s }: { s: CommandCenterState }) {
 
       {/* Mobile FAB */}
       {!s.isRoundingMode && (
-        <div className="fixed bottom-24 right-4 md:hidden z-30">
+        <div className="fixed bottom-20 right-4 md:hidden z-30">
           <AnimatePresence>
             {s.isFabMenuOpen && (
               <motion.div
@@ -95,22 +105,31 @@ export default function PatientsTab({ s }: { s: CommandCenterState }) {
                     s.setIsRoundingMode(true);
                     s.setIsFabMenuOpen(false);
                   }}
-                  className="flex items-center gap-2 h-10 pl-3 pr-4 rounded-full bg-success text-success-foreground shadow-lg text-sm font-medium"
+                  className="w-12 h-12 rounded-full bg-success text-success-foreground shadow-lg flex items-center justify-center"
+                  aria-label="Start Rounds"
                 >
-                  <Stethoscope className="w-4 h-4" /> Start Rounds
+                  <Stethoscope className="w-5 h-5" />
                 </button>
                 <button
                   onClick={() => {
                     s.setIsUnifiedImportOpen(true);
                     s.setIsFabMenuOpen(false);
                   }}
-                  className="flex items-center gap-2 h-10 pl-3 pr-4 rounded-full bg-primary text-primary-foreground shadow-lg text-sm font-medium"
+                  className="w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center"
+                  aria-label="Import Patient"
                 >
-                  <UserPlus className="w-4 h-4" /> Import Patient
+                  <UserPlus className="w-5 h-5" />
                 </button>
+                <FeedbackFabButton
+                  onOpen={() => {
+                    feedback.setOpen(true);
+                    s.setIsFabMenuOpen(false);
+                  }}
+                />
               </motion.div>
             )}
           </AnimatePresence>
+          <FeedbackWidgetControlled {...feedback} />
           <button
             onClick={() => s.setIsFabMenuOpen(!s.isFabMenuOpen)}
             className={cn(
