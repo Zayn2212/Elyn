@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Capacitor } from "@capacitor/core";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -55,24 +54,18 @@ const passwordRequirements = [
   },
 ];
 
-const getRedirectUrl = (path: string = "") => {
-  if (Capacitor.isNativePlatform()) {
-    // Android/iOS: use custom scheme so the OS reopens the app
-    return `com.elyn.aiassistant://auth/callback`;
-  }
-  const base = import.meta.env.VITE_APP_URL || window.location.origin;
-  return `${base}${path}`;
-};
-
 const Auth = () => {
-  const [isLogin, setIsLogin] = useState(true);
+  // Public signup is disabled — providers must be invited by an admin.
+  // To re-enable signup, change `useState(true)` back to `useState(true)` with a toggle.
+  const [isLogin] = useState(true);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  // Signup fields — kept for future re-enablement
   const [fullName, setFullName] = useState("");
   const [specialty, setSpecialty] = useState("");
-  const [loading, setLoading] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [showPasswordRequirements, setShowPasswordRequirements] =
     useState(false);
   const [mfaChallenge, setMfaChallenge] = useState<{ factorId: string } | null>(
@@ -115,7 +108,7 @@ const Auth = () => {
     setLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: getRedirectUrl("/reset-password"),
+        redirectTo: `${window.location.origin}/reset-password`,
       });
       if (error) throw error;
       toast({
@@ -152,7 +145,7 @@ const Auth = () => {
       });
       return;
     }
-setLoading(true);
+    setLoading(true);
     try {
       if (isLogin) {
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -180,11 +173,12 @@ setLoading(true);
           description: "Successfully signed in.",
         });
       } else {
+        // Sign-up path — currently unreachable (invitation-only). Preserved for future re-enablement.
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: getRedirectUrl("/"),
+            emailRedirectTo: `${window.location.origin}/`,
             data: { full_name: fullName, specialty },
           },
         });
@@ -241,6 +235,10 @@ setLoading(true);
 
   return (
     <div className="min-h-screen relative overflow-hidden">
+      {/* SEO H1 (visually hidden, screen-reader accessible) */}
+      <h1 className="sr-only">
+        elyn™ — AI Clinical Documentation and Autonomous Medical Billing for Physicians
+      </h1>
       <video
         autoPlay
         loop
@@ -269,7 +267,7 @@ setLoading(true);
             >
               <motion.img
                 src={elynLogo}
-                alt="elyn"
+                alt="elyn — AI clinical documentation and autonomous billing logo"
                 className="w-72 h-auto mx-auto object-contain mix-blend-multiply dark:mix-blend-screen"
                 animate={{ scale: [1, 1.02, 1] }}
                 transition={{
@@ -357,6 +355,7 @@ setLoading(true);
             ) : (
               <>
                 <form onSubmit={handleAuth} className="space-y-5">
+                  {/* Sign-up fields — hidden while invitation-only is active (isLogin is always true) */}
                   {!isLogin && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
@@ -522,6 +521,7 @@ setLoading(true);
                       </motion.div>
                     )}
                   </div>
+                  {/* T&C checkbox — hidden while signup is disabled */}
                   {!isLogin && (
                     <div className="pt-1">
                       <button
@@ -580,25 +580,17 @@ setLoading(true);
                     )}
                   </Button>
                 </form>
-                <div className="mt-6 text-center">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsLogin(!isLogin);
-                      setPassword("");
-                      setSpecialty("");
-                      setAgreedToTerms(false);
-                      setShowPasswordRequirements(false);
-                    }}
-                    className="text-sm text-foreground/50 hover:text-foreground/80 transition-colors"
-                  >
-                    {isLogin
-                      ? "Don't have an account? "
-                      : "Already have an account? "}
-                    <span className="text-primary font-medium">
-                      {isLogin ? "Sign Up" : "Sign In"}
-                    </span>
-                  </button>
+                {/* Invitation-only notice replaces the sign-up toggle */}
+                <div className="mt-6 text-center space-y-1">
+                  <p className="text-xs text-muted-foreground">
+                    elyn is invitation-only. New providers receive an email invite from an administrator.
+                  </p>
+                  <p className="text-[11px] text-foreground/40">
+                    Need access? Email{" "}
+                    <a href="mailto:support@elynai.live" className="text-primary hover:underline">
+                      support@elynai.live
+                    </a>
+                  </p>
                 </div>
               </>
             )}
@@ -607,14 +599,23 @@ setLoading(true);
           <WorkflowDemo />
           <p className="text-center text-xs text-foreground/40 mt-6">
             By continuing, you agree to elyn™'s{" "}
-            <Link to="/terms" target="_blank" rel="noopener noreferrer" className="hover:text-foreground/60 underline underline-offset-2">
+            <a href="/terms" className="underline hover:text-foreground/70">
               Terms of Service
-            </Link>{" "}
+            </a>{" "}
             and{" "}
-            <Link to="/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-foreground/60 underline underline-offset-2">
+            <a href="/privacy" className="underline hover:text-foreground/70">
               Privacy Policy
-            </Link>
+            </a>
           </p>
+          <div className="flex items-center justify-center gap-3 text-xs text-foreground/40 mt-3">
+            <a href="/terms" className="hover:text-foreground/70">Terms</a>
+            <span>·</span>
+            <a href="/privacy" className="hover:text-foreground/70">Privacy</a>
+            <span>·</span>
+            <a href="/contact" className="hover:text-foreground/70">Contact</a>
+            <span>·</span>
+            <a href="mailto:support@elynai.live" className="hover:text-foreground/70">support@elynai.live</a>
+          </div>
         </motion.div>
       </div>
     </div>

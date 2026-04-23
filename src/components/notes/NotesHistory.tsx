@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useSync } from "@/contexts/SyncContext";
@@ -176,7 +176,7 @@ function SOAPNoteDisplay({
   }
 
   return (
-    <div className="space-y-3 m-2 ml-0">
+    <div className="space-y-3">
       {sections.map((section, index) => {
         const colors = SOAP_COLORS[section.section] || SOAP_COLORS.SUBJECTIVE;
         const isCopied = copiedSection === section.section;
@@ -186,20 +186,13 @@ function SOAPNoteDisplay({
             className={cn("rounded-lg border p-3", colors.bg, colors.border)}
           >
             <div className="flex items-center justify-between mb-1.5">
-              <div
-                className={cn(
-                  "text-xs font-bold uppercase tracking-wider",
-                  colors.text,
-                )}
-              >
+              <div className={cn("text-xs font-bold uppercase tracking-wider", colors.text)}>
                 {section.section}
               </div>
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() =>
-                  handleCopySection(section.section, section.content)
-                }
+                onClick={() => handleCopySection(section.section, section.content)}
                 className="h-6 px-2 text-[10px]"
               >
                 {isCopied ? (
@@ -210,10 +203,7 @@ function SOAPNoteDisplay({
                 {isCopied ? "Copied" : "Copy"}
               </Button>
             </div>
-            <MarkdownDisplay
-              content={section.content}
-              className="text-sm mt-2"
-            />
+            <MarkdownDisplay content={section.content} className="text-sm mt-1" />
           </div>
         );
       })}
@@ -234,7 +224,6 @@ export default function NotesHistory({ onToast }: NotesHistoryProps) {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
   const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [pendingExport, setPendingExport] = useState<{ note: ClinicalNote; format: 'txt' | 'json' } | null>(null);
 
   // Load notes on mount and when refreshKey changes (sync from other devices)
@@ -498,83 +487,55 @@ export default function NotesHistory({ onToast }: NotesHistoryProps) {
                 </SelectContent>
               </Select>
 
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsCalendarOpen(true)}
-                className={cn(
-                  "h-9 rounded-lg text-xs gap-1.5",
-                  (dateFrom || dateTo) && "border-primary text-primary",
-                )}
-              >
-                <CalendarIcon className="w-3.5 h-3.5" />
-                {dateFrom || dateTo
-                  ? `${dateFrom ? format(dateFrom, "MMM d") : "…"} – ${dateTo ? format(dateTo, "MMM d") : "…"}`
-                  : "Dates"}
-              </Button>
-
-              <AnimatePresence>
-                {isCalendarOpen && (
-                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      onClick={() => setIsCalendarOpen(false)}
-                      className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-                    />
-                    <motion.div
-                      initial={{ scale: 0.95, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      exit={{ scale: 0.95, opacity: 0 }}
-                      className="relative z-10 bg-card rounded-2xl shadow-xl flex flex-col overflow-hidden max-w-sm w-full"
-                    >
-                      <div className="flex items-center justify-between p-4 border-b border-border bg-muted/10">
-                        <h3 className="font-semibold text-foreground">
-                          Select Date Range
-                        </h3>
-                        <button
-                          onClick={() => setIsCalendarOpen(false)}
-                          className="p-1.5 hover:bg-muted rounded-lg transition-colors"
-                        >
-                          <X className="w-4 h-4 text-muted-foreground" />
-                        </button>
-                      </div>
-                      <div className="p-4 flex flex-col items-center">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={cn(
+                      "h-9 rounded-lg text-xs gap-1.5",
+                      (dateFrom || dateTo) && "border-primary text-primary",
+                    )}
+                  >
+                    <CalendarIcon className="w-3.5 h-3.5" />
+                    {dateFrom || dateTo
+                      ? `${dateFrom ? format(dateFrom, "MMM d") : "…"} – ${dateTo ? format(dateTo, "MMM d") : "…"}`
+                      : "Dates"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-3" align="end">
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center gap-2">
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">From</p>
                         <Calendar
-                          mode="range"
-                          selected={{ from: dateFrom, to: dateTo }}
-                          onSelect={(range: any) => {
-                            setDateFrom(range?.from);
-                            setDateTo(range?.to);
-                          }}
-                          disabled={(date) => date > new Date()}
+                          mode="single"
+                          selected={dateFrom}
+                          onSelect={setDateFrom}
+                          disabled={(date) => date > new Date() || (dateTo ? date > dateTo : false)}
                           initialFocus
-                          className="pointer-events-auto"
+                          className="p-2 pointer-events-auto"
                         />
                       </div>
-                      <div className="p-4 border-t border-border flex justify-between bg-muted/20">
-                        <Button
-                          variant="ghost"
-                          onClick={() => {
-                            clearDateFilter();
-                            setIsCalendarOpen(false);
-                          }}
-                          className="text-xs"
-                        >
-                          Clear
-                        </Button>
-                        <Button
-                          onClick={() => setIsCalendarOpen(false)}
-                          className="text-xs px-6"
-                        >
-                          Done
-                        </Button>
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">To</p>
+                        <Calendar
+                          mode="single"
+                          selected={dateTo}
+                          onSelect={setDateTo}
+                          disabled={(date) => date > new Date() || (dateFrom ? date < dateFrom : false)}
+                          className="p-2 pointer-events-auto"
+                        />
                       </div>
-                    </motion.div>
+                    </div>
+                    {(dateFrom || dateTo) && (
+                      <Button variant="ghost" size="sm" onClick={clearDateFilter} className="text-xs self-end">
+                        <X className="w-3 h-3 mr-1" /> Clear dates
+                      </Button>
+                    )}
                   </div>
-                )}
-              </AnimatePresence>
+                </PopoverContent>
+              </Popover>
 
               <div className="hidden md:flex items-center gap-1.5 text-xs text-muted-foreground whitespace-nowrap">
                 <FileText className="w-3.5 h-3.5" />
@@ -648,13 +609,13 @@ export default function NotesHistory({ onToast }: NotesHistoryProps) {
                             </span>
                           );
                         })()}
-                        {note.reviewed_at ? (
+                        {note.status === "signed" && note.reviewed_at ? (
                           <span className="px-2 py-0.5 rounded-full text-[10px] font-medium flex items-center gap-1 bg-green-500/10 text-green-600 dark:text-green-400">
                             <CheckCircle2 className="w-2.5 h-2.5" />
                             Reviewed
                           </span>
-                        ) : note.generated_note ? (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-medium flex items-center gap-1 bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                        ) : note.status === "draft" && note.generated_note ? (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-medium flex items-center gap-1" style={{ backgroundColor: '#29282c', color: '#8e7128' }}>
                             ✨ AI Draft
                           </span>
                         ) : null}
@@ -820,132 +781,100 @@ export default function NotesHistory({ onToast }: NotesHistoryProps) {
         </div>
 
         {/* Desktop: Right Preview Panel */}
-        <div className="hidden md:flex flex-col h-full overflow-hidden pl-3">
+        <div className="hidden md:flex flex-col h-full overflow-hidden pl-4">
           {expandedNoteId ? (
             (() => {
               const note = filteredNotes.find((n) => n.id === expandedNoteId);
               if (!note) return null;
               return (
                 <div className="flex flex-col h-full">
-                  <div className="flex-shrink-0 px-4 py-4 border-b border-border bg-muted/5">
-                    <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-4">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={cn(
-                            "w-10 h-10 rounded-xl flex items-center justify-center",
-                            note.note_type === "hp"
-                              ? "bg-primary/10"
-                              : note.note_type === "consult"
-                                ? "bg-secondary/10"
-                                : "bg-warning/10",
-                          )}
-                        >
-                          <FileText
-                            className={cn(
-                              "w-5 h-5",
-                              note.note_type === "hp"
-                                ? "text-primary"
-                                : note.note_type === "consult"
-                                  ? "text-secondary"
-                                  : "text-warning",
-                            )}
-                          />
-                        </div>
-                        <div>
-                          <h3 className="text-base font-bold text-foreground flex items-center flex-wrap gap-x-2">
-                            {noteTypeLabels[note.note_type]}
-                            {note.patient && (
-                              <span className="text-muted-foreground font-normal">
-                                — {note.patient.name}
-                              </span>
-                            )}
-                          </h3>
-                          <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
-                            <Clock className="w-3 h-3" />
-                            {formatDate(note.created_at)}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          onClick={() => handleCopy(note)}
-                          variant="outline"
-                          size="sm"
-                          className="rounded-lg h-8 px-2.5"
-                        >
-                          {copiedNoteId === note.id ? (
-                            <Check className="w-3.5 h-3.5 mr-1.5 text-success" />
-                          ) : (
-                            <Copy className="w-3.5 h-3.5 mr-1.5" />
-                          )}
-                          Copy
-                        </Button>
-                        <Button
-                          onClick={() => handleExportTxt(note)}
-                          variant="outline"
-                          size="sm"
-                          className="rounded-lg h-8 px-2.5"
-                        >
-                          <FileDown className="w-3.5 h-3.5 mr-1.5" />
-                          TXT
-                        </Button>
-                        <Button
-                          onClick={() => handleExportJson(note)}
-                          variant="outline"
-                          size="sm"
-                          className="rounded-lg h-8 px-2.5"
-                        >
-                          <Download className="w-3.5 h-3.5 mr-1.5" />
-                          JSON
-                        </Button>
-                      </div>
+                  {/* Preview Header */}
+                  <div className="flex-shrink-0 flex items-center justify-between mb-3">
+                    <div>
+                      <h3 className="text-lg font-semibold text-foreground">
+                        {noteTypeLabels[note.note_type]}
+                        {note.patient && (
+                          <span className="text-muted-foreground font-normal"> — {note.patient.name}</span>
+                        )}
+                      </h3>
+                      <p className="text-xs text-muted-foreground">{formatDate(note.created_at)}</p>
                     </div>
-
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground mr-1">
-                        Status:
-                      </span>
-                      {note.status === "draft" && (
+                      <Button
+                        onClick={() => handleCopy(note)}
+                        variant="outline"
+                        size="sm"
+                        className="rounded-lg h-8 px-3"
+                      >
+                        {copiedNoteId === note.id ? (
+                          <Check className="w-3.5 h-3.5 mr-1.5 text-success" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5 mr-1.5" />
+                        )}
+                        Copy
+                      </Button>
+                      <Button
+                        onClick={() => handleExportTxt(note)}
+                        variant="outline"
+                        size="sm"
+                        className="rounded-lg h-8 px-3"
+                      >
+                        <FileDown className="w-3.5 h-3.5 mr-1.5" />
+                        TXT
+                      </Button>
+                      <Button
+                        onClick={() => handleExportJson(note)}
+                        variant="outline"
+                        size="sm"
+                        className="rounded-lg h-8 px-3"
+                      >
+                        <Download className="w-3.5 h-3.5 mr-1.5" />
+                        JSON
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Status Actions */}
+                  <div className="flex-shrink-0 flex items-center gap-2 mb-3 pb-3 border-b border-border">
+                    <span className="text-xs text-muted-foreground mr-2">Status:</span>
+                    {note.status === "draft" && (
+                      <Button
+                        onClick={() => updateNoteStatus(note.id, "pending_review")}
+                        variant="outline"
+                        size="sm"
+                        className="rounded-lg h-8 px-3 border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10"
+                      >
+                        <Eye className="w-3.5 h-3.5 mr-1.5" />
+                        Mark for Review
+                      </Button>
+                    )}
+                    {note.status === "pending_review" && (
+                      <>
                         <Button
-                          onClick={() =>
-                            updateNoteStatus(note.id, "pending_review")
-                          }
+                          onClick={() => updateNoteStatus(note.id, "draft")}
                           variant="outline"
                           size="sm"
-                          className="rounded-lg h-8 px-3 border-amber-500/30 text-amber-600 dark:text-amber-400"
+                          className="rounded-lg h-8 px-3"
                         >
-                          <Eye className="w-3.5 h-3.5 mr-1.5" />
-                          Mark for Review
+                          <FileEdit className="w-3.5 h-3.5 mr-1.5" />
+                          Back to Draft
                         </Button>
-                      )}
-                      {note.status === "pending_review" && (
-                        <div className="flex items-center gap-2">
-                          <Button
-                            onClick={() => updateNoteStatus(note.id, "draft")}
-                            variant="outline"
-                            size="sm"
-                            className="rounded-lg h-8 px-3"
-                          >
-                            <FileEdit className="w-3.5 h-3.5 mr-1.5" />
-                            Draft
-                          </Button>
-                          <Button
-                            onClick={() => updateNoteStatus(note.id, "signed")}
-                            size="sm"
-                            className="rounded-lg h-8 px-3 bg-green-600 hover:bg-green-700 text-white"
-                          >
-                            <Pen className="w-3.5 h-3.5 mr-1.5" />
-                            Sign Note
-                          </Button>
-                        </div>
-                      )}
-                      {note.status === "signed" && (
-                        <div className="flex items-center gap-2 text-xs font-medium text-green-600 dark:text-green-400 bg-green-500/10 px-2.5 py-1.5 rounded-lg border border-green-500/20">
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          Note Signed & Finalized
-                        </div>
-                      )}
-                    </div>
+                        <Button
+                          onClick={() => updateNoteStatus(note.id, "signed")}
+                          size="sm"
+                          className="rounded-lg h-8 px-3 bg-green-600 hover:bg-green-700 text-white"
+                        >
+                          <Pen className="w-3.5 h-3.5 mr-1.5" />
+                          Sign Note
+                        </Button>
+                      </>
+                    )}
+                    {note.status === "signed" && (
+                      <span className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        Note is signed and finalized
+                      </span>
+                    )}
                   </div>
 
                   {/* Note Content */}

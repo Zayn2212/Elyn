@@ -78,7 +78,7 @@ export default function BillingTab({ s }: { s: CommandCenterState }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="flex flex-col h-full px-4 pt-4"
+      className="absolute inset-0 flex flex-col px-4 pt-4 overflow-hidden"
     >
       {/* Header */}
       <div className="flex-shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">

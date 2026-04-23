@@ -6,14 +6,9 @@ interface AdminRouteProps {
   children: ReactNode;
 }
 
-/**
- * AdminRoute component that protects routes requiring admin access.
- * Shows loading state while checking auth, redirects to home if not admin.
- */
 const AdminRoute = ({ children }: AdminRouteProps) => {
   const { user, loading, isAdmin } = useAuth();
 
-  // Show loading state
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -27,15 +22,8 @@ const AdminRoute = ({ children }: AdminRouteProps) => {
     );
   }
 
-  // Not logged in - redirect to auth
-  if (!user) {
-    return <Navigate to="/auth" replace />;
-  }
-
-  // Not admin - redirect to home
-  if (!isAdmin) {
-    return <Navigate to="/" replace />;
-  }
+  if (!user) return <Navigate to="/auth" replace />;
+  if (!isAdmin) return <Navigate to="/" replace />;
 
   return <>{children}</>;
 };

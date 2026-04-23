@@ -12,6 +12,7 @@ import useKeyboardShortcuts from '@/hooks/useKeyboardShortcuts';
 import AI from '@/services/ai';
 import type { DocumentMode, RadiologyModality, RadiologyContext, CardiologyStudyType } from '@/types/medical';
 import type { Patient, PatientStatus } from '@/components/patients/PatientCard';
+import { computeAcuity, type AcuityLevel } from '@/lib/acuityEngine';
 import type { Bill } from '@/components/billing/BillCard';
 import type { ExtractedBilling } from '@/components/billing/BillingConfirmationModal';
 import type { NoteExport } from '@/lib/exportNotes';
@@ -100,6 +101,14 @@ export function useCommandCenter() {
   const [providerSpecialty, setProviderSpecialty] = useState<string | null>(null);
   const [selectedPatientHasNotes, setSelectedPatientHasNotes] = useState(false);
   const [toast, setToast] = useState('');
+  const [nextPatientSuggestion, setNextPatientSuggestion] = useState<{
+    isVisible: boolean;
+    patientName: string;
+    acuityScore: number;
+    acuityLevel: AcuityLevel;
+    topSignal: string;
+    patientId: string;
+  } | null>(null);
 
   const showToast = useCallback((message: string) => {
     setToast(message);
@@ -149,17 +158,57 @@ export function useCommandCenter() {
     try {
       const { data: patientsData } = await supabase.from('patients').select('*').order('updated_at', { ascending: false });
       if (patientsData) logPhiAccess('patients', patientsData.length);
-      const transformedPatients: PatientWithFacility[] = (patientsData || []).map((p, i) => ({
-        id: p.id, name: p.name, mrn: p.mrn, dob: p.dob, room: p.room,
-        diagnosis: p.diagnosis, allergies: p.allergies, facility_id: p.facility_id,
-        hospital: (p as any).hospital, status: (p.status as PatientStatus) || 'not_seen',
-        acuity: (['critical', 'high', 'moderate', 'low'] as const)[i % 4], lastSeen: 'Today',
-        insurance_name: p.insurance_name, insurance_id: p.insurance_id,
-        insurance_group: p.insurance_group, insurance_plan_type: p.insurance_plan_type,
-      }));
+
+      // Fetch today's notes for acuity time computation
+      const today = new Date().toISOString().split('T')[0];
+      const { data: allPatientNotes } = await supabase.from('clinical_notes').select('patient_id, created_at').gte('created_at', today);
+      const notesByPatient = new Map<string, { count: number; lastAt: string }>();
+      (allPatientNotes || []).forEach(n => {
+        if (!n.patient_id) return;
+        const existing = notesByPatient.get(n.patient_id);
+        if (!existing || n.created_at > existing.lastAt) {
+          notesByPatient.set(n.patient_id, { count: (existing?.count || 0) + 1, lastAt: n.created_at });
+        }
+      });
+
+      const transformedPatients: PatientWithFacility[] = (patientsData || []).map((p) => {
+        const noteInfo = notesByPatient.get(p.id);
+        const acuityResult = computeAcuity({
+          diagnosis: p.diagnosis,
+          status: p.status,
+          allergies: p.allergies,
+          lastNoteAt: noteInfo?.lastAt || null,
+          lastActionAt: (p as any).last_action_at || null,
+          pendingRvu: 0,
+          noteCount: noteInfo?.count || 0,
+        });
+        return {
+          id: p.id, name: p.name, mrn: p.mrn, dob: p.dob, room: p.room,
+          diagnosis: p.diagnosis, allergies: p.allergies, facility_id: p.facility_id,
+          hospital: (p as any).hospital, status: (p.status as PatientStatus) || 'not_seen',
+          acuity: acuityResult.level, lastSeen: 'Today',
+          insurance_name: p.insurance_name, insurance_id: p.insurance_id,
+          insurance_group: p.insurance_group, insurance_plan_type: p.insurance_plan_type,
+          acuity_score: (p as any).acuity_score ?? acuityResult.score,
+          acuity_level: ((p as any).acuity_level as AcuityLevel) ?? acuityResult.level,
+          acuity_signals: (p as any).acuity_signals ?? acuityResult.signals,
+          last_action_at: (p as any).last_action_at,
+          pending_rvu: 0,
+        };
+      });
       setPatients(transformedPatients);
 
-      const today = new Date().toISOString().split('T')[0];
+      // Persist computed acuity scores for cross-device sync
+      for (const pt of transformedPatients) {
+        if (!(patientsData || []).find(p => p.id === pt.id && (p as any).acuity_score != null)) {
+          supabase.from('patients').update({
+            acuity_score: pt.acuity_score,
+            acuity_level: pt.acuity_level,
+            acuity_signals: pt.acuity_signals as any,
+          }).eq('id', pt.id).then(() => {});
+        }
+      }
+
       const { data: notes } = await supabase.from('clinical_notes').select('*, billing_records(*)').gte('created_at', today);
       if (notes?.length) {
         logPhiAccess('clinical_notes', notes.length);
@@ -221,6 +270,27 @@ export function useCommandCenter() {
     if (isMobile) setPatientDetailOpen(true);
   }, [isMobile]);
 
+  // Surface next highest-priority patient suggestion after an encounter
+  const surfaceNextPatient = useCallback((excludePatientId?: string) => {
+    const unseenHighPriority = filteredPatients
+      .filter(p => p.status === 'not_seen' && p.id !== excludePatientId && (p.acuity_score ?? 0) > 30)
+      .sort((a, b) => (b.acuity_score ?? 0) - (a.acuity_score ?? 0));
+
+    if (unseenHighPriority.length > 0) {
+      const next = unseenHighPriority[0];
+      setNextPatientSuggestion({
+        isVisible: true,
+        patientName: next.name,
+        acuityScore: next.acuity_score ?? 0,
+        acuityLevel: (next.acuity_level as AcuityLevel) || 'moderate',
+        topSignal: next.acuity_signals?.[0] || 'Needs attention',
+        patientId: next.id,
+      });
+      // Auto-dismiss after 12 seconds
+      setTimeout(() => setNextPatientSuggestion(prev => prev ? { ...prev, isVisible: false } : null), 12000);
+    }
+  }, [filteredPatients]);
+
   const handleRecordPatient = useCallback(async (patient: Patient) => {
     setSelectedPatient(patient);
     setPatientDetailOpen(false);
@@ -238,11 +308,15 @@ export function useCommandCenter() {
       setPatients(prev => prev.map(p => p.id === patientId ? { ...p, status: newStatus } : p));
       const statusLabels: Record<PatientStatus, string> = { not_seen: 'Not Seen', in_progress: 'In Progress', seen: 'Seen', signed: 'Signed', discharged: 'Discharged' };
       showToast(`Status updated to ${statusLabels[newStatus]}`);
+      // Surface next priority patient after completing an encounter
+      if (newStatus === 'seen' || newStatus === 'signed') {
+        surfaceNextPatient(patientId);
+      }
     } catch (e) {
       console.error('Error updating status:', e);
       showToast('Error updating status');
     }
-  }, [user, showToast]);
+  }, [user, showToast, surfaceNextPatient]);
 
   const handleOpenDischargeModal = useCallback((patient: Patient) => {
     setPatientToDischarge(patient);
@@ -480,6 +554,7 @@ export function useCommandCenter() {
     mobileStatsExpanded, setMobileStatsExpanded,
     providerSpecialty, selectedPatientHasNotes,
     toast, showToast,
+    nextPatientSuggestion, setNextPatientSuggestion, surfaceNextPatient,
     // Handlers
     loadData, handleRecordPress, handlePatientSelect, handleRecordPatient,
     handleStatusChange, handleOpenDischargeModal, handleDischarge,

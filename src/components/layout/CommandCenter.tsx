@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useCommandCenter } from '@/hooks/useCommandCenter';
 import { useSessionSecurity } from '@/hooks/useSessionSecurity';
@@ -9,11 +10,24 @@ import CommandCenterModals from './CommandCenterModals';
 import BottomNav from './BottomNav';
 import NotesHistory from '@/components/notes/NotesHistory';
 import ComplianceBanner from './ComplianceBanner';
+import NextPatientSuggestion from '@/components/patients/NextPatientSuggestion';
+import FeedbackWidget from '@/components/feedback/FeedbackWidget';
 import { Toast } from '@/components/elyn/index';
 
 export default function CommandCenter() {
   const s = useCommandCenter();
   const { showTimeoutWarning, updateActivity } = useSessionSecurity();
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+
+  const handleGoToSuggestedPatient = () => {
+    if (!s.nextPatientSuggestion) return;
+    const patient = s.filteredPatients.find(p => p.id === s.nextPatientSuggestion!.patientId);
+    if (patient) {
+      s.handlePatientSelect(patient);
+      s.setActiveTab('patients');
+    }
+    s.setNextPatientSuggestion(null);
+  };
 
   return (
     <div className="h-screen bg-background overflow-hidden flex flex-col pb-16 md:pb-0" style={{ paddingTop: 'var(--safe-top, env(safe-area-inset-top, 0px))' }}>
@@ -26,11 +40,11 @@ export default function CommandCenter() {
       )}
       <CommandCenterHeader s={s} />
 
-      <main className="flex-1 overflow-hidden">
+      <main className="flex-1 min-h-0 relative overflow-hidden">
         <AnimatePresence mode="wait">
-          {s.activeTab === 'patients' && <PatientsTab s={s} />}
+          {s.activeTab === 'patients' && <PatientsTab s={s} onFeedbackOpenChange={setFeedbackOpen} />}
           {s.activeTab === 'notes' && (
-            <motion.div key="notes" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full">
+            <motion.div key="notes" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 flex flex-col overflow-hidden">
               <NotesHistory onToast={s.showToast} />
             </motion.div>
           )}
@@ -39,8 +53,21 @@ export default function CommandCenter() {
         </AnimatePresence>
       </main>
 
-      <BottomNav activeTab={s.activeTab} onTabChange={s.setActiveTab} onRecordPress={s.handleRecordPress} isRecording={s.speech.isRecording} />
+      <BottomNav activeTab={s.activeTab} onTabChange={s.setActiveTab} onRecordPress={s.handleRecordPress} isRecording={s.speech.isRecording} isFeedbackOpen={feedbackOpen} />
       <CommandCenterModals s={s} />
+      <FeedbackWidget />
+
+      {s.nextPatientSuggestion && (
+        <NextPatientSuggestion
+          isVisible={s.nextPatientSuggestion.isVisible}
+          patientName={s.nextPatientSuggestion.patientName}
+          acuityScore={s.nextPatientSuggestion.acuityScore}
+          acuityLevel={s.nextPatientSuggestion.acuityLevel}
+          topSignal={s.nextPatientSuggestion.topSignal}
+          onGoToPatient={handleGoToSuggestedPatient}
+          onDismiss={() => s.setNextPatientSuggestion(null)}
+        />
+      )}
 
       <AnimatePresence>
         {s.toast && <Toast message={s.toast} />}

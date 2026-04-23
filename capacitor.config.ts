@@ -8,9 +8,9 @@ const config: CapacitorConfig = {
     // ! IMPORTANT - FOR MIC TO WORK HOT RELOAD MUST BE DISABLED
     androidScheme: "https",
     iosScheme: "https",
-    // url: "http://192.168.100.30:8083", // HTTP blocks getUserMedia — uncomment only for UI live reload (breaks mic)
+    url: "http://192.168.100.30:8080", // Localhost always works — no mixed content
     cleartext: true,
-
+    // url: "http://192.168.100.30:8080", // HTTP blocks getUserMedia — uncomment only for UI live reload (breaks mic)
     // url: "http://192.168.100.27:8080", // Dev server — uncomment only for live reload (breaks mic/getUserMedia on Android)
   },
   plugins: {

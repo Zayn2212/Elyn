@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Stethoscope,
@@ -17,6 +16,7 @@ import { Patient, PatientStatus } from "@/components/patients/PatientCard";
 interface RoundingModeToggleProps {
   isActive: boolean;
   onToggle: () => void;
+  onClose: () => void;
   patients: Patient[];
   onStatusChange: (patientId: string, newStatus: PatientStatus) => void;
   onPatientSelect: (patient: Patient) => void;
@@ -48,36 +48,34 @@ const quickStatusActions: Array<{
 export default function RoundingModeToggle({
   isActive,
   onToggle,
+  onClose,
   patients,
   onStatusChange,
   onPatientSelect,
 }: RoundingModeToggleProps) {
-  // Get patients that need rounding (not seen, in progress, or critical)
+  // Queue: not_seen and in_progress only — seen/signed/discharged are done
   const roundingQueue = patients
-    .filter(
-      (p) =>
-        p.status !== "discharged" &&
-        p.status !== "signed" &&
-        p.status !== "seen",
-    )
+    .filter((p) => p.status === "not_seen" || p.status === "in_progress")
     .sort((a, b) => {
-      // Critical first
-      if (a.acuity === "critical" && b.acuity !== "critical") return -1;
-      if (b.acuity === "critical" && a.acuity !== "critical") return 1;
-      // Then high acuity
-      if (a.acuity === "high" && b.acuity !== "high") return -1;
-      if (b.acuity === "high" && a.acuity !== "high") return 1;
-      // Then by status (in_progress first, then not_seen)
+      // In-progress first
       if (a.status === "in_progress" && b.status !== "in_progress") return -1;
       if (b.status === "in_progress" && a.status !== "in_progress") return 1;
-      return 0;
+      // Then by acuity score descending
+      return (b.acuity_score ?? 0) - (a.acuity_score ?? 0);
     });
 
   const currentPatient =
     roundingQueue.find((p) => p.status === "in_progress") || roundingQueue[0];
   const nextPatient = roundingQueue.find(
-    (p) => p.id !== currentPatient?.id && p.status !== "in_progress",
+    (p) => p.id !== currentPatient?.id,
   );
+
+  const handleSeenClick = () => {
+    if (!currentPatient) return;
+    onStatusChange(currentPatient.id, "seen");
+    // Close the rounding card — NextPatientSuggestion takes over
+    onClose();
+  };
 
   if (!isActive) {
     return (
@@ -144,12 +142,12 @@ export default function RoundingModeToggle({
                       <span className="font-semibold text-foreground">
                         {currentPatient.name}
                       </span>
-                      {currentPatient.acuity === "critical" && (
+                      {(currentPatient.acuity_level ?? currentPatient.acuity) === "critical" && (
                         <span className="px-1.5 py-0.5 rounded text-[10px] bg-destructive/20 text-destructive font-medium">
                           Critical
                         </span>
                       )}
-                      {currentPatient.acuity === "high" && (
+                      {(currentPatient.acuity_level ?? currentPatient.acuity) === "high" && (
                         <span className="px-1.5 py-0.5 rounded text-[10px] bg-warning/20 text-warning font-medium">
                           High
                         </span>
@@ -188,25 +186,27 @@ export default function RoundingModeToggle({
 
               {/* Quick Actions */}
               <div className="flex gap-2 mt-3">
-                {quickStatusActions.map((action) => (
-                  <button
-                    key={action.status}
-                    onClick={() =>
-                      onStatusChange(currentPatient.id, action.status)
-                    }
-                    disabled={currentPatient.status === action.status}
-                    className={cn(
-                      "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-medium text-sm transition-all",
-                      action.bgColor,
-                      action.color,
-                      currentPatient.status === action.status &&
-                        "opacity-50 cursor-not-allowed",
-                    )}
-                  >
-                    <action.icon className="w-4 h-4" />
-                    {action.label}
-                  </button>
-                ))}
+                {quickStatusActions.map((action) => {
+                  const isDisabled =
+                    currentPatient.status === action.status ||
+                    (action.status === "seen" && currentPatient.status !== "in_progress");
+                  return (
+                    <button
+                      key={action.status}
+                      onClick={action.status === "seen" ? handleSeenClick : () => onStatusChange(currentPatient.id, action.status)}
+                      disabled={isDisabled}
+                      className={cn(
+                        "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-medium text-sm transition-all",
+                        action.bgColor,
+                        action.color,
+                        isDisabled && "opacity-30 cursor-not-allowed",
+                      )}
+                    >
+                      <action.icon className="w-4 h-4" />
+                      {action.label}
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Next Up */}

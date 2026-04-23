@@ -46,3 +46,6 @@ verify_jwt = false
 [functions.ai-billing-intelligence]
 verify_jwt = true
 
+[functions.admin-manage-user]
+verify_jwt = true
+
