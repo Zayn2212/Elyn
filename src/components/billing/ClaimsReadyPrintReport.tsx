@@ -150,7 +150,7 @@ export const ClaimsReadyPrintReport = ({
 
   return (
     <ModalBackdrop onClose={onClose}>
-      <div className="bg-background max-w-5xl w-full max-h-[90vh] overflow-auto rounded-xl print:max-w-none print:max-h-none print:overflow-visible print:rounded-none">
+      <div className="bg-background max-w-5xl w-full max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-xl print:max-w-none print:max-h-none print:overflow-visible print:rounded-none">
         {/* Screen-only header with actions */}
         <div className="sticky top-0 bg-background border-b border-border p-4 flex items-center justify-between print:hidden z-10">
           <h2 className="text-lg font-semibold text-foreground">Claims-Ready Billing Report</h2>

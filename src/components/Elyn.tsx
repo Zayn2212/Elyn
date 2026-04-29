@@ -444,7 +444,7 @@ export default function Elyn() {
       <AnimatePresence>
         {s.showHandoff && (
           <Modal onClose={() => s.setShowHandoff(false)}>
-            <div className="p-6 max-h-[80vh] overflow-auto">
+            <div className="p-6 max-h-[calc(100dvh-2rem)] overflow-y-auto">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-semibold text-primary">
                   🔄 Handoff Summary
@@ -1866,7 +1866,7 @@ function PatientModal({
   const inputClass =
     "w-full p-2 rounded-lg bg-muted/50 border border-primary/20 text-foreground text-sm";
   return (
-    <div className="p-6 max-h-[85vh] overflow-auto">
+    <div className="p-6 max-h-[calc(100dvh-2rem)] overflow-y-auto">
       <h2 className="text-lg font-semibold mb-2 text-primary">
         {s.patient.id ? "Edit Patient" : "Add Patient"}
       </h2>

@@ -273,7 +273,7 @@ export default function AuditLogViewer() {
 
       {/* Details Dialog */}
       <Dialog open={!!detailsLog} onOpenChange={() => setDetailsLog(null)}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-auto">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Shield className="w-5 h-5 text-primary" />

@@ -57,5 +57,7 @@
 	<string>Elyn needs photo library access to import face sheets and clinical documents.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Elyn needs permission to save captured documents and clinical images to your photo library.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Elyn uses Face ID to quickly and securely sign you in to your account.</string>
 </dict>
 </plist>

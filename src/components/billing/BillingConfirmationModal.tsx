@@ -239,7 +239,7 @@ export default function BillingConfirmationModal({
               exit={{ y: '100%', opacity: 0 }}
               transition={{ duration: 0.2 }}
               onClick={(e) => e.stopPropagation()}
-              className="fixed md:relative bottom-20 left-4 right-4 md:bottom-auto md:left-auto md:right-auto z-50 glass-card rounded-2xl max-h-[75vh] md:max-h-[80vh] overflow-hidden flex flex-col overflow-x-hidden md:max-w-lg md:w-full"
+              className="fixed md:relative bottom-20 left-4 right-4 md:bottom-auto md:left-auto md:right-auto z-50 glass-card rounded-2xl max-h-[calc(100dvh-7rem)] md:max-h-[calc(100dvh-2rem)] overflow-hidden flex flex-col overflow-x-hidden md:max-w-lg md:w-full"
             >
               {/* Handle - mobile only */}
               <div className="flex justify-center pt-3 pb-2 md:hidden">

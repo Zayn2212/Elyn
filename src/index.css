@@ -427,13 +427,55 @@
     pointer-events: none;
   }
 
+  /*
+   * Modal layout helpers — apply to the inner content container of custom
+   * framer-motion modals so they shrink (and scroll internally) when the
+   * on-screen keyboard appears on iOS / Android.
+   *
+   * Usage:
+   *   <div className="modal-content-box">   // caps at calc(100dvh - 2rem)
+   *     <div className="modal-scroll">      // body scrolls internally
+   *   </div>
+   *
+   * dvh (dynamic viewport height) accounts for the keyboard on iOS 15.4+ and
+   * modern Android WebViews — the keyboard plugin's native resize mode shrinks
+   * the viewport, dvh reflects the new height, and max-h: 100dvh keeps the
+   * modal inside it. `safe-area-inset-bottom` keeps the last scrollable row
+   * from being hidden under the home indicator.
+   */
+  .modal-content-box {
+    max-height: calc(100dvh - 2rem);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .modal-scroll {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* For bottom-anchored sheets: the sheet itself can use modal-sheet-box
+     so its total height never exceeds the dynamic viewport. */
+  .modal-sheet-box {
+    max-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
   /* Bottom navigation - theme-aware */
   .bottom-nav {
     background: hsl(var(--card) / 0.95);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-top: 1px solid hsl(var(--glass-border));
-    padding-bottom: env(safe-area-inset-bottom);
+    /* Full safe-area inset is too much visual gap below the labels on iPhones
+       with a home indicator (~34pt). We subtract 20px so labels sit closer to
+       the indicator, while still keeping a 4pt minimum buffer so tap targets
+       don't land on the gesture strip. */
+    padding-bottom: max(env(safe-area-inset-bottom) - 20px, 4px);
   }
   
   /* Patient card hover effect */

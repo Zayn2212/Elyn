@@ -90,7 +90,7 @@ export default function PatientsTab({ s, onFeedbackOpenChange }: { s: CommandCen
 
       {/* Mobile FAB */}
       {!s.isRoundingMode && (
-        <div className="fixed bottom-20 right-4 md:hidden z-30">
+        <div className="fixed bottom-28 right-4 md:hidden z-30">
           <AnimatePresence>
             {s.isFabMenuOpen && (
               <motion.div

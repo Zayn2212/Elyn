@@ -16,6 +16,7 @@
     "cap:run:ios": "npm run build && npx cap sync && npx cap run ios"
   },
   "dependencies": {
+    "@aparajita/capacitor-biometric-auth": "^8.0.2",
     "@capacitor/android": "^6.2.1",
     "@capacitor/app": "^8.1.0",
     "@capacitor/cli": "^6.2.1",

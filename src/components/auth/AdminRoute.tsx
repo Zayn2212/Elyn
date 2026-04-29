@@ -23,6 +23,7 @@ const AdminRoute = ({ children }: AdminRouteProps) => {
   }
 
   if (!user) return <Navigate to="/auth" replace />;
+  if (user.user_metadata?.must_reset_password) return <Navigate to="/reset-password?forced=true" replace />;
   if (!isAdmin) return <Navigate to="/" replace />;
 
   return <>{children}</>;

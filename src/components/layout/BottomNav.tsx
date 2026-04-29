@@ -1,41 +1,7 @@
 import { motion } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
 import { Users, FileText, Mic, CreditCard, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-function useIsKeyboardVisible() {
-  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
-  const initialHeight = useRef(window.innerHeight);
-
-  useEffect(() => {
-    // Show as soon as any input/textarea gains focus
-    const handleFocusIn = (e: FocusEvent) => {
-      const tag = (e.target as HTMLElement).tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") {
-        setIsKeyboardVisible(true);
-      }
-    };
-
-    // Hide when the window resizes back up — adjustResize shrinks the window
-    // when keyboard opens and expands it when keyboard closes.
-    // We do NOT use focusout because Android scroll-on-focus fires spurious blurs.
-    const handleResize = () => {
-      if (window.innerHeight >= initialHeight.current * 0.9) {
-        setIsKeyboardVisible(false);
-      }
-    };
-
-    document.addEventListener("focusin", handleFocusIn);
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      document.removeEventListener("focusin", handleFocusIn);
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
-
-  return isKeyboardVisible;
-}
+import { useKeyboardVisible } from "@/hooks/useKeyboardVisible";
 
 interface BottomNavProps {
   activeTab: string;
@@ -60,14 +26,16 @@ export default function BottomNav({
   isRecording,
   isFeedbackOpen,
 }: BottomNavProps) {
-  const isKeyboardVisible = useIsKeyboardVisible();
+  const isKeyboardVisible = useKeyboardVisible();
 
   if (isKeyboardVisible || isFeedbackOpen) return null;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bottom-nav md:hidden">
-      {/* safe-area-inset-bottom for iPhone home bar */}
-      <div className="flex items-center justify-around h-14 px-1 pb-[env(safe-area-inset-bottom)]">
+      {/* safe-area-inset-bottom is applied on the `.bottom-nav` class itself
+          (see index.css). Applying it again here would double the inset on iOS
+          and squash the icons above the top border. */}
+      <div className="flex items-center justify-around h-14 px-1">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -78,7 +46,7 @@ export default function BottomNav({
                 key={tab.id}
                 onClick={onRecordPress}
                 className={cn(
-                  "relative flex items-center justify-center w-12 h-12 -mt-6 rounded-full transition-all duration-200 shadow-lg",
+                  "relative flex items-center justify-center w-12 h-12 -mt-12 rounded-full transition-all duration-200 shadow-lg",
                   isRecording
                     ? "bg-destructive recording-pulse"
                     : "bg-gradient-to-br from-primary to-blue-600 dark:to-secondary",

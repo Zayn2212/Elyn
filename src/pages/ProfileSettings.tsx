@@ -60,6 +60,7 @@ import {
   ChevronUp,
   ChevronDown,
   ExternalLink as ExternalLinkIcon,
+  Trash2,
 } from "lucide-react";
 
 import { motion } from "framer-motion";
@@ -110,6 +111,7 @@ const ProfileSettings = () => {
   const [sessions, setSessions] = useState<UserSession[]>([]);
   const [loadingSessions, setLoadingSessions] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [profile, setProfile] = useState<Profile>({
     full_name: "",
@@ -205,6 +207,40 @@ const ProfileSettings = () => {
         title: "Profile updated",
         description: "Your profile has been saved successfully.",
       });
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    setIsDeleting(true);
+    try {
+      if (user) {
+        await supabase
+          .from("audit_logs")
+          .insert({
+            user_id: user.id,
+            table_name: "profiles",
+            action: "DELETE",
+            new_data: { context: "account_deletion_requested" },
+          })
+          .then(({ error: e }) => {
+            if (e) console.error("Audit log write failed:", e);
+          });
+      }
+
+      const { error } = await supabase.functions.invoke("delete-account");
+      if (error) throw error;
+
+      // Account disabled server-side — sign out locally so the user is
+      // redirected to /auth and stored biometric creds (if any) get wiped.
+      await supabase.auth.signOut({ scope: "local" });
+    } catch (err) {
+      console.error("Delete account error:", err);
+      toast({
+        title: "Error",
+        description: "Failed to delete account. Please try again.",
+        variant: "destructive",
+      });
+      setIsDeleting(false);
     }
   };
 
@@ -994,6 +1030,72 @@ const ProfileSettings = () => {
                   Use this if you suspect unauthorized access to your account
                 </p>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Danger Zone — permanent account deletion */}
+          <Card className="bg-card/50 backdrop-blur-sm border-destructive/30 mt-6">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-xl bg-destructive/10">
+                  <AlertTriangle className="h-6 w-6 text-destructive" />
+                </div>
+                <div>
+                  <CardTitle className="text-destructive">Danger Zone</CardTitle>
+                  <CardDescription>
+                    Permanently delete your account and all associated data
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="destructive"
+                    className="w-full"
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Deleting...
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete Account
+                      </>
+                    )}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete your account?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Your account will be permanently disabled. You will be
+                      signed out immediately and will no longer be able to log
+                      in. All active sessions across all devices will be
+                      terminated. This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel disabled={isDeleting}>
+                      Cancel
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDeleteAccount}
+                      disabled={isDeleting}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      {isDeleting ? "Deleting..." : "Delete Account"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+              <p className="text-xs text-muted-foreground mt-2 text-center">
+                This will disable your account and sign you out everywhere
+              </p>
             </CardContent>
           </Card>
         </motion.div>

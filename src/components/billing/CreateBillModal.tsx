@@ -97,7 +97,7 @@ export const CreateBillModal = ({ onComplete, onCancel, addBill }: CreateBillMod
 
   return (
     <ModalBackdrop onClose={onCancel}>
-      <div className="glass-card p-6 max-h-[90vh] overflow-auto">
+      <div className="glass-card p-6 max-h-[calc(100dvh-2rem)] overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold text-foreground">Create Bill</h2>
           <button onClick={onCancel} className="p-2 rounded-lg hover:bg-muted/50 transition-colors">

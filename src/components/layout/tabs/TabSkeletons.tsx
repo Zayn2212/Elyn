@@ -151,11 +151,16 @@ export function NoteListSkeleton() {
 }
 
 export function SettingsSkeleton() {
+  // Match SettingsTab exactly: outer absolute flex column, scrollable content,
+  // a thin border-top footer with just the Sign Out button.
+  // The old skeleton had pt-4 applied twice (once on SkeletonContainer, once
+  // on the inner list) and pb-20 on the footer — both caused visible gaps
+  // that don't exist in the real screen.
   return (
-    <SkeletonContainer className="px-0">
-      <div className="flex-1 px-4 pt-4 pb-4 space-y-6">
+    <SkeletonContainer className="px-0 pt-0">
+      <div className="flex-1 px-4 pt-4 pb-4 space-y-6 overflow-y-auto">
         <Skeleton className="h-8 w-40 mb-4" />
-        
+
         <div className="space-y-3">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="w-full h-14 px-4 rounded-xl border border-border flex items-center justify-between">
@@ -172,7 +177,7 @@ export function SettingsSkeleton() {
         </div>
       </div>
 
-      <div className="px-4 py-4 pb-20 md:pb-6 border-t border-border">
+      <div className="px-4 py-4 md:pb-6 border-t border-border bg-background">
         <Skeleton className="w-full h-12 rounded-xl" />
       </div>
     </SkeletonContainer>

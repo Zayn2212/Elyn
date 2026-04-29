@@ -1,6 +1,7 @@
 import { useState, useEffect, createContext, useContext, ReactNode, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { disableBiometric, syncStoredCredsWithSession } from '@/services/biometric';
 
 interface AuthContextType {
   user: User | null;
@@ -36,7 +37,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
-        
+
         // Check admin role after auth state change
         if (session?.user) {
           setTimeout(() => {
@@ -44,6 +45,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           }, 0);
         } else {
           setIsAdmin(false);
+        }
+
+        // Keep biometric-stored tokens in sync. Supabase rotates the refresh
+        // token on every refresh, so if we don't update our Keychain blob the
+        // stored refresh token goes stale within an hour.
+        if (event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN') {
+          syncStoredCredsWithSession(session).catch(() => {
+            // Non-fatal — biometric unlock will detect stale creds and recover.
+          });
         }
       }
     );
@@ -68,6 +78,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (user) {
       await supabase.from('audit_logs').insert({ user_id: user.id, table_name: 'profiles', action: 'SELECT', new_data: { context: 'sign_out' } }).then(({ error: e }) => { if (e) console.error('Audit log write failed:', e); });
     }
+    // Wipe biometric creds so the next user on this device isn't silently
+    // unlocked into the previous account.
+    await disableBiometric().catch(() => {});
     await supabase.auth.signOut({ scope: 'local' });
   };
 

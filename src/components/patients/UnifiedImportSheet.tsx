@@ -61,7 +61,7 @@ export default function UnifiedImportSheet({
           exit={{ y: "100%", opacity: 0 }}
           transition={{ type: "spring", damping: 28, stiffness: 300 }}
           onClick={(e) => e.stopPropagation()}
-          className="relative z-10 w-full md:max-w-lg bg-background rounded-t-2xl md:rounded-2xl max-h-[85vh] flex flex-col shadow-2xl"
+          className="relative z-10 w-full md:max-w-lg bg-background rounded-t-2xl md:rounded-2xl max-h-[calc(100dvh-2rem)] flex flex-col shadow-2xl"
         >
           <div className="flex justify-center pt-3 pb-1 md:hidden">
             <div className="w-10 h-1 rounded-full bg-border" />
@@ -288,7 +288,6 @@ function PasteImportTab({
         onChange={(e) => setPasteText(e.target.value)}
         placeholder="Ctrl+V / ⌘V patient data here..."
         className="min-h-[100px] text-sm rounded-xl resize-none"
-        autoFocus
       />
       {error && (
         <div className="flex items-start gap-2 p-3 bg-destructive/10 border border-destructive/30 rounded-xl">

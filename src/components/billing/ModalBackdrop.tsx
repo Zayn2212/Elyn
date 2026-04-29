@@ -24,7 +24,7 @@ export const ModalBackdrop = ({ children, onClose }: ModalBackdropProps) => (
       exit={{ opacity: 0, y: 20 }}
       transition={{ duration: 0.15 }}
       onClick={e => e.stopPropagation()}
-      className="relative z-10 w-full max-w-lg max-h-[85vh] overflow-auto"
+      className="relative z-10 w-full max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto"
     >
       {children}
     </motion.div>

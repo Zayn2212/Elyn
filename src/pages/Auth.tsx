@@ -29,6 +29,8 @@ import elynLogo from "@/assets/elyn-logo.png";
 import WorkflowDemo from "@/components/auth/WorkflowDemo";
 import MFAChallenge from "@/components/auth/MFAChallenge";
 import { SPECIALTIES } from "@/data/specialties";
+import { BIOMETRIC_OFFER_FLAG } from "@/components/auth/BiometricEnablePrompt";
+import { isBiometricPlatform } from "@/services/biometric";
 
 const passwordRequirements = [
   {
@@ -153,6 +155,13 @@ const Auth = () => {
           password,
         });
         if (error) throw error;
+
+        // Flag a one-shot biometric enrollment offer — the prompt gate at the
+        // app root will pick this up once the user lands on the protected tree
+        // (post-MFA if applicable).
+        if (isBiometricPlatform()) {
+          sessionStorage.setItem(BIOMETRIC_OFFER_FLAG, "1");
+        }
 
         // Check for MFA requirement
         const { data: factorsData } = await supabase.auth.mfa.listFactors();

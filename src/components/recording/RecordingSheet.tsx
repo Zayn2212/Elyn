@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Waveform } from "@/components/elyn/index";
 import { cn } from "@/lib/utils";
 import useRealtimeTranscription from "@/hooks/useRealtimeTranscription";
+import { useKeyboardVisible } from "@/hooks/useKeyboardVisible";
 import { supabase } from "@/integrations/supabase/client";
 import { ModalitySelector } from "@/components/elyn/RadiologyContext";
 import {
@@ -128,7 +129,35 @@ export default function RecordingSheet({
   cardiologyStudyType = "echo",
   onCardiologyStudyTypeChange,
 }: RecordingSheetProps) {
+  const keyboardVisible = useKeyboardVisible();
+  const scrollRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
+
+  // Scroll the modal's inner content to its bottom. The textarea lives at the
+  // end of the scroll region, so scrolling all the way down is equivalent to
+  // bringing it into view. We do this whenever the keyboard becomes visible,
+  // and also expose it so the textarea's own onFocus can trigger it directly
+  // (focus fires synchronously on tap; relying on the keyboard event alone
+  // misses cases where the keyboard animation is delayed).
+  const scrollToBottom = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+  };
+
+  useEffect(() => {
+    if (!keyboardVisible) return;
+    // Delay so the keyboard finishes animating and the modal finishes
+    // resizing. Running scrollTop earlier would target a stale layout and
+    // under-scroll. Two attempts cover cases where the first fires before
+    // the resize settles.
+    const t1 = window.setTimeout(scrollToBottom, 150);
+    const t2 = window.setTimeout(scrollToBottom, 400);
+    return () => {
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+    };
+  }, [keyboardVisible]);
   const [recordingMode, setRecordingMode] = useState<RecordingMode>("ambient");
   const [isCorrecting, setIsCorrecting] = useState(false);
   const [showPatientSelector, setShowPatientSelector] = useState(false);
@@ -296,7 +325,13 @@ export default function RecordingSheet({
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: "100%", opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed md:relative bottom-20 left-4 right-4 md:bottom-auto md:left-auto md:right-auto z-50 glass-card rounded-2xl max-h-[75vh] md:max-h-[85vh] flex flex-col overflow-hidden md:max-w-xl md:w-full"
+              className={cn(
+                "fixed md:relative top-[calc(env(safe-area-inset-top)+0.5rem)] left-4 right-4 md:top-auto md:bottom-auto md:left-auto md:right-auto z-50 glass-card rounded-2xl md:max-h-[calc(100dvh-2rem)] flex flex-col overflow-hidden md:max-w-xl md:w-full",
+                // When the keyboard is up, the bottom nav is hidden (see BottomNav)
+                // so we can claim that space and hug the keyboard. Otherwise keep
+                // bottom-20 so the modal doesn't overlap the floating nav.
+                keyboardVisible ? "bottom-2" : "bottom-20",
+              )}
             >
               {/* Handle - mobile */}
               <div className="flex justify-center pt-3 pb-2 md:hidden">
@@ -335,7 +370,7 @@ export default function RecordingSheet({
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto">
+              <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto">
                 {/* Smart config summary — one-line when patient pre-selected */}
                 {patientId && !showAdvancedConfig && (
                   <div className="px-4 pt-3 pb-1">
@@ -854,6 +889,15 @@ export default function RecordingSheet({
                     <textarea
                       value={transcript}
                       onChange={(e) => onTranscriptChange(e.target.value)}
+                      onFocus={() => {
+                        // Bring the textarea into view on tap — fires before
+                        // the keyboard even starts animating. Queue two more
+                        // after delays so the final scroll lands after the
+                        // keyboard is fully up and the modal has resized.
+                        scrollToBottom();
+                        window.setTimeout(scrollToBottom, 200);
+                        window.setTimeout(scrollToBottom, 450);
+                      }}
                       placeholder={
                         documentMode === "radiology"
                           ? "Dictate your radiology findings..."

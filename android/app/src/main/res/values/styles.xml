@@ -13,14 +13,32 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:background">@null</item>
-        <!-- Match status bar to dark navy app background -->
+
+        <!-- Status bar: match dark navy app background with light icons. -->
         <item name="android:statusBarColor">#0f172a</item>
-        <!-- Use light (white) icons on the dark status bar -->
         <item name="android:windowLightStatusBar">false</item>
+
+        <!-- Navigation bar: without this the system nav area defaults to white,
+             which shows as a thin white strip at the very bottom of every screen
+             on phones with gesture navigation. Match the app background + dark
+             icons for the gesture pill. -->
+        <item name="android:navigationBarColor">#0f172a</item>
+        <item name="android:windowLightNavigationBar">false</item>
     </style>
 
 
+    <!-- Launch / splash theme.
+         Android 12+ renders this via the SplashScreen API (windowSplashScreen*).
+         Pre-12 falls back to `android:background`. Both paths are populated so
+         the splash actually shows on every supported OS version.
+         `postSplashScreenTheme` tells Android 12+ what theme to apply once
+         the splash finishes — without it the transition flashes back to the
+         launcher theme before the app theme kicks in. -->
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
+        <!-- Android < 12 -->
         <item name="android:background">@drawable/splash</item>
+        <!-- Android 12+ -->
+        <item name="windowSplashScreenBackground">#041230</item>
+        <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
     </style>
 </resources>

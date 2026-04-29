@@ -287,7 +287,7 @@ export default function QuickAddPatient({
   const modalContent = (
     <div
       className={cn(
-        "flex flex-col h-full max-h-[85vh] md:max-h-[80vh]",
+        "flex flex-col h-full max-h-[calc(100dvh-2rem)]",
         isInline
           ? ""
           : "glass-card rounded-2xl overflow-hidden shadow-2xl bg-card",

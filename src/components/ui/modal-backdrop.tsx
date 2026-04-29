@@ -38,7 +38,7 @@ const ModalBackdrop = ({ children, onClose, maxWidth = 'lg' }: ModalBackdropProp
         exit={{ opacity: 0, y: 20 }}
         transition={{ duration: 0.15 }}
         onClick={(e) => e.stopPropagation()}
-        className={`relative z-10 w-full ${maxWidthClass} max-h-[85vh] overflow-auto`}
+        className={`relative z-10 w-full ${maxWidthClass} max-h-[calc(100dvh-2rem)] overflow-y-auto`}
       >
         {children}
       </motion.div>

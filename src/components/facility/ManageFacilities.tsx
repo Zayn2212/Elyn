@@ -111,7 +111,7 @@ export default function ManageFacilities({ isOpen, onClose }: ManageFacilitiesPr
               onClick={(e) => e.stopPropagation()}
               className="relative z-10 w-full max-w-lg"
             >
-              <div className="glass-card max-h-[80vh] overflow-hidden flex flex-col">
+              <div className="glass-card max-h-[calc(100dvh-2rem)] overflow-hidden flex flex-col">
               {/* Header */}
               <div className="flex items-center justify-between p-4 border-b border-border">
                 <div className="flex items-center gap-3">

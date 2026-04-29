@@ -292,7 +292,6 @@ export default function EMRQuickImport({
                 onChange={(e) => setPasteText(e.target.value)}
                 placeholder="Ctrl+V / ⌘V patient data here..."
                 className="min-h-[80px] text-sm rounded-xl resize-none"
-                autoFocus
               />
               <Button
                 onClick={() => processText(pasteText)}

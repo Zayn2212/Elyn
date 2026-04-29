@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -20,6 +20,9 @@ import { FacilityProvider } from "@/contexts/FacilityContext";
 import { SyncProvider } from "@/contexts/SyncContext";
 import AdminRoute from "@/components/auth/AdminRoute";
 import FeedbackWidget from "@/components/feedback/FeedbackWidget";
+import BiometricLockScreen from "@/components/auth/BiometricLockScreen";
+import BiometricEnablePrompt from "@/components/auth/BiometricEnablePrompt";
+import { disableBiometric } from "@/services/biometric";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import BillingAgent from "./pages/BillingAgent";
@@ -53,6 +56,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   if (loading) return <LoadingScreen />;
   if (!user) return <Navigate to="/auth" replace />;
+  // Admin-created accounts must set a new password before accessing the app
+  if (user.user_metadata?.must_reset_password) return <Navigate to="/reset-password?forced=true" replace />;
   if (isAdmin) return <Navigate to="/admin" replace />;
 
   return (
@@ -219,6 +224,67 @@ const NotchCover = () => {
   return <div className="ios-notch-cover" />;
 };
 
+// Idle timeout (ms) after which a backgrounded app re-locks.
+// 5 min is a common HIPAA-aligned session idle threshold for healthcare apps.
+const BIOMETRIC_IDLE_LOCK_MS = 5 * 60 * 1000;
+
+/**
+ * Renders a full-screen biometric lock on native platforms. The lock screen
+ * itself decides, on mount, whether there are Keychain creds to unlock against:
+ *   - Creds found → prompt biometric → on success, restore the Supabase session.
+ *   - No creds    → transparently call onUnlocked so the app flows normally
+ *                   (fresh install, or user never enabled biometric).
+ *
+ * This means the gate doesn't need to know about Supabase session state — even
+ * if localStorage was wiped and Supabase's persisted session is gone, the lock
+ * screen can still restore the session from the Keychain blob. On cold launch
+ * the lock covers the app until a decision is made; a brief flash is fine.
+ *
+ * Re-lock on resume: after >5 min in the background, we set unlocked=false so
+ * the lock screen reappears on next foreground.
+ */
+const BiometricGate = () => {
+  const [unlocked, setUnlocked] = useState(false);
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+
+    let pausedAt: number | null = null;
+    const pausePromise = CapApp.addListener("pause", () => {
+      pausedAt = Date.now();
+    });
+    const resumePromise = CapApp.addListener("resume", () => {
+      const elapsed = pausedAt ? Date.now() - pausedAt : 0;
+      pausedAt = null;
+      if (elapsed > BIOMETRIC_IDLE_LOCK_MS) {
+        setUnlocked(false);
+      }
+    });
+
+    return () => {
+      pausePromise.then((l) => l.remove());
+      resumePromise.then((l) => l.remove());
+    };
+  }, []);
+
+  if (!Capacitor.isNativePlatform()) return null;
+  if (unlocked) return null;
+
+  const handleFallback = async () => {
+    // Stored creds may already be wiped (stale-creds path), but call again to be safe.
+    await disableBiometric().catch(() => {});
+    await supabase.auth.signOut({ scope: "local" }).catch(() => {});
+    setUnlocked(true);
+  };
+
+  return (
+    <BiometricLockScreen
+      onUnlocked={() => setUnlocked(true)}
+      onFallbackToPassword={handleFallback}
+    />
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
@@ -235,6 +301,8 @@ const App = () => (
             <SyncProvider>
               <FacilityProvider>
                 <AppRoutes />
+                <BiometricEnablePrompt />
+                <BiometricGate />
               </FacilityProvider>
             </SyncProvider>
           </AuthProvider>

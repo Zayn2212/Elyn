@@ -490,7 +490,7 @@ export default function PatientDetailSheet({
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: "100%", opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed md:relative bottom-20 left-4 right-4 md:bottom-auto md:left-auto md:right-auto z-50 glass-card rounded-2xl max-h-[82vh] md:max-h-[85vh] flex flex-col md:max-w-lg md:w-full overflow-hidden"
+              className="fixed md:relative bottom-20 left-4 right-4 md:bottom-auto md:left-auto md:right-auto z-50 glass-card rounded-2xl max-h-[calc(100dvh-7rem)] md:max-h-[calc(100dvh-2rem)] flex flex-col md:max-w-lg md:w-full overflow-hidden"
             >
               {/* Handle - mobile only */}
               <div className="flex justify-center pt-3 pb-2 md:hidden">

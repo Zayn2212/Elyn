@@ -448,7 +448,7 @@ export default function NoteViewerModal({
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: "100%", opacity: 0 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className="fixed md:relative bottom-0 left-0 right-0 md:bottom-auto md:left-auto md:right-auto z-50 bg-card border border-border rounded-t-2xl md:rounded-2xl md:max-w-2xl md:w-full h-[90vh] md:h-auto md:max-h-[85vh] flex flex-col overflow-hidden shadow-2xl print:shadow-none print:max-h-none print:h-auto print:rounded-none print:border-none print:fixed print:inset-0 print:z-[9999] print:bg-white"
+            className="fixed md:relative bottom-0 left-0 right-0 md:bottom-auto md:left-auto md:right-auto z-50 bg-card border border-border rounded-t-2xl md:rounded-2xl md:max-w-2xl md:w-full h-[90dvh] md:h-auto md:max-h-[calc(100dvh-2rem)] flex flex-col overflow-hidden shadow-2xl print:shadow-none print:max-h-none print:h-auto print:rounded-none print:border-none print:fixed print:inset-0 print:z-[9999] print:bg-white"
           >
             {/* Mobile handle */}
             <div className="flex justify-center pt-2 pb-0.5 md:hidden print:hidden">

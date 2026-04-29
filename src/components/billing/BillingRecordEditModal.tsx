@@ -111,7 +111,7 @@ export default function BillingRecordEditModal({
               onClick={(e) => e.stopPropagation()}
               className="relative z-10 w-full max-w-lg"
             >
-              <div className="glass-card max-h-[80vh] overflow-hidden flex flex-col">
+              <div className="glass-card max-h-[calc(100dvh-2rem)] overflow-hidden flex flex-col">
               {/* Header */}
               <div className="p-4 border-b border-border flex items-center justify-between">
                 <div>

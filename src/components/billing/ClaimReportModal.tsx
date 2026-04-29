@@ -451,7 +451,7 @@ export default function ClaimReportModal({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 20 }}
-        className="relative z-10 w-full max-w-2xl max-h-[90vh] flex flex-col bg-background border border-border rounded-2xl shadow-2xl print:max-w-none print:max-h-none print:rounded-none print:shadow-none print:border-0"
+        className="relative z-10 w-full max-w-2xl max-h-[calc(100dvh-2rem)] flex flex-col bg-background border border-border rounded-2xl shadow-2xl print:max-w-none print:max-h-none print:rounded-none print:shadow-none print:border-0"
       >
         {/* Action Bar */}
         <div className="shrink-0 flex items-center justify-between p-4 border-b border-border print:hidden">
